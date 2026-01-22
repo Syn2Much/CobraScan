@@ -486,16 +486,17 @@ Press 1 -> 10 (Technology Detection)
 
 ### Version 1.3.0 (Current)
 - **Web Analyzer v2.0.0**: Major expansion with 12 scan types
-  - ✨ New: HTTP Methods vulnerability scanning (TRACE, PUT, DELETE detection)
-  - ✨ New: Content analysis (emails, meta tags, sensitive paths)
-  - ✨ New: Performance metrics (response time, compression, caching analysis)
-  - ✨ New: Enhanced SSL analysis with certificate warnings and expiry tracking
-  - ✨ New: Security headers with vulnerability recommendations
-  - ✨ New: IPv6 DNS records support (AAAA records)
-  - ✨ New: Expanded port scanning (21 ports including PostgreSQL, Redis, Elasticsearch)
-  - 🔧 Refactored: Structured JSON output with logical sections
-  - 🐛 Fixed: All spacing and formatting issues
-  - 📈 Improved: Better error handling and user feedback
+-  New: HTTP Methods vulnerability scanning (TRACE, PUT, DELETE detection)
+-  New: Content analysis (emails, meta tags, sensitive paths)
+-  New: Performance metrics (response time, compression, caching analysis)
+-  New: Enhanced SSL analysis with certificate warnings and expiry tracking
+-  New: Security headers with vulnerability recommendations
+-  New: IPv6 DNS records support (AAAA records)
+-  New: Expanded port scanning (21 ports including PostgreSQL, Redis, Elasticsearch)
+-  Refactored: Structured JSON output with logical sections
+-  Refactored: Enhanced Modular Plugin Loader
+-  Fixed: All spacing and formatting issues
+-  Improved: Better error handling and user feedback
 
 ### Version 1.2.5
 - Modular Architecture: Complete refactor to plugin system
