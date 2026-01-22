@@ -1,21 +1,48 @@
 
 # CobraScan 🐍
 
-A all in one comprehensive reconnaissance tool that performs multiple security scans and analyses in one unified interactive user interface.
-
+A modular, all-in-one comprehensive reconnaissance tool that performs multiple security scans and analyses through an unified interactive interface with extensible module architecture.
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/Syn2Much/CobraScan/graphs/commit-activity)
 
+---
+
+## 🎯 Key Features
+
+- **🔌 Modular Architecture** - Easy to extend with custom modules
+- **📊 Multiple Scan Types** - DNS, SSL, ports, headers, and more
+- **🎨 Interactive CLI** - Beautiful, user-friendly interface
+- **📦 Batch Processing** - Scan multiple targets simultaneously
+- **💾 JSON Export** - Structured data for further analysis
+- **⚙️ Persistent Config** - Save your preferences
+- **🚀 Template System** - Create new modules in minutes
 
 ---
 
-## 📚 Menu Options
+## 📚 Main Menu
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Available Modules:                                          │
+│ 1. Web Analyzer                                             │
+│ 2. [Future Module]                                          │
+│ 3. [Future Module]                                          │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ T.   Load Target (URL/IP or File)                           │
+│ C.  Configuration & Settings                                │
+│ H. Help & Information                                       │
+│ Q. Exit                                                     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Web Analyzer Module
 
 | Option | Function | Output |
 |--------|----------|--------|
-| **T** | Load Target (URL/IP or File) | - |
 | **1** | Quick Scan (Basic HTTP Info) | Screen |
 | **2** | DNS Reconnaissance | Screen |
 | **3** | IP & Geolocation Info | Screen |
@@ -25,15 +52,14 @@ A all in one comprehensive reconnaissance tool that performs multiple security s
 | **7** | Technology Detection | Screen |
 | **8** | Full Reconnaissance Scan | **JSON File** |
 | **9** | Batch Scan from Loaded Targets | **JSON File** |
-| **C** | Configuration & Settings | - |
-| **H** | Help & Information | - |
-| **Q** | Exit | - |
+| **B** | Back to Main Menu | - |
 
 ---
+
 ## 📦 Installation
 
 ### Prerequisites
-- Python 3
+- Python 3.8+
 - pip package manager
 
 ### Quick Start
@@ -60,7 +86,10 @@ python main.py
 python main.py
 ```
 
-Navigate through the menu using the numbered options and keyboard shortcuts. 
+1. Select a module from the main menu (e.g., `1` for Web Analyzer)
+2. Choose your scan type from the module menu
+3. Enter target URL or load from file
+4. Review results on screen or in JSON output
 
 ### Target File Format
 
@@ -82,7 +111,6 @@ https://client2.net
 
 ---
 
-
 ## 🔧 Configuration
 
 Access the configuration menu by pressing **C** from the main menu.
@@ -92,67 +120,140 @@ Access the configuration menu by pressing **C** from the main menu.
 | Setting | Description | Default |
 |---------|-------------|---------|
 | **Timeout** | Request timeout in seconds | 10 |
-| **Output File** | JSON output filename | `CobraScan_results.json` |
+| **Output File** | JSON output filename | `cobra_scan_results.json` |
 | **Auto-Save** | Automatically save detailed scans | True |
 | **Verbose** | Enable verbose output | True |
 
 ### Saving/Loading Configuration
 
-Configuration is saved to `CobraScan_config.json` and persists between sessions.
+Configuration is saved to `cobra_config.json` and persists between sessions.
 
 ---
-
 
 ## 📁 Project Structure
 
 ```
 CobraScan/
 │
-├── main.py                 # Main GUI application
-├── web_analyzer.py         # Core scanning engine
+├── main.py                 # Main GUI framework & module loader
 ├── target_manager.py       # Target loading and management
 ├── utils. py                # Helper functions and utilities
 ├── requirements.txt        # Python dependencies
-├── README. md               # This file
+├── README.md               # This file
 │
-├── targets.txt             # Sample target list (user-created)
-├── CobraScan_config.json    # Configuration file (auto-generated)
-└── CobraScan_results.json   # Scan results (auto-generated)
+├── modules/                # Module directory
+│   ├── __init__.py         # Package initializer
+│   ├── web_analyzer.py     # Web analysis module
+│   └── module_template.py  # Template for new modules
+│
+├── targets. txt             # Sample target list (user-created)
+├── cobra_config. json       # Configuration file (auto-generated)
+└── cobra_scan_results.json # Scan results (auto-generated)
 ```
 
 ---
+
+## 🔌 Creating Custom Modules
+
+CobraScan's modular architecture makes it easy to extend functionality. 
+
+### Quick Start:  Copy the Template
+
+```bash
+# Copy the module template
+cp dev/module_template.py modules/your_module. py
+```
+
+### Customize Your Module
+
+```python
+# modules/your_module.py
+
+class YourModuleName:
+    def __init__(self):
+        self.name = "Your Module Name"
+        self.version = "1.0.0"
+    
+    def run(self, config, target_manager):
+        """Main entry point for your module."""
+        # Your module logic here
+        pass
+    
+    def _print_module_banner(self):
+        """Display your module banner."""
+        pass
+    
+    def _your_scan_function(self, config, target_manager):
+        """Your custom scan logic."""
+        pass
+```
+
+### Register Your Module
+
+Add to `main.py` in the `_load_modules()` method:
+
+```python
+def _load_modules(self):
+    """Load all available modules."""
+    try:
+        from modules.web_analyzer import WebAnalyzerModule
+        self.modules['web_analyzer'] = WebAnalyzerModule()
+        
+        # Add your module
+        from modules.your_module import YourModuleName
+        self.modules['your_module'] = YourModuleName()
+        
+    except ImportError as e:
+        print(f"Error loading modules: {e}")
+```
+
+### Module Contribution Guidelines
+
+- Follow the module template structure
+- Include docstrings for all functions
+- Add error handling
+- Test with multiple targets
+- Update README with new module info
+
+---
+
 
 ## 🎓 Examples
 
 ### Example 1: Single Target Scan
 
 ```
-1. Press 'T' to load target
-2. Select option '1' (Load Single URL/IP)
-3. Enter: https://example.com
-4. Press '8' for Full Reconnaissance Scan
-5. Results saved to CobraScan_results. json
+1. Run:  python main.py
+2. Press '1' to load Web Analyzer module
+3. Press 'T' (from main menu) to load target
+4. Select option '1' (Load Single URL/IP)
+5. Enter: https://example.com
+6. Press '8' for Full Reconnaissance Scan
+7. Results saved to cobra_scan_results. json
 ```
 
-### Example 2: Batch Scanning
+### Example 2:  Batch Scanning
 
 ```
-1. Create targets. txt with multiple URLs
-2. Press 'T' to load target
-3. Select option '2' (Load from File)
-4. Enter: targets.txt
-5. Press '9' for Batch Scan
-6. Results saved to batch_YYYYMMDD_HHMMSS.json
+1. Create targets.txt with multiple URLs
+2. Run: python main.py
+3. Press 'T' to load target
+4. Select option '2' (Load from File)
+5. Enter: targets.txt
+6. Press '1' to open Web Analyzer
+7. Press '9' for Batch Scan
+8. Results saved to batch_YYYYMMDD_HHMMSS.json
 ```
 
 ### Example 3: Quick Security Check
 
 ```
 1. Load target (option T)
-2. Press '5' for Security Headers Analysis
-3. Review security header presence
-4. Press '4' for SSL Certificate check
-5. Verify certificate expiration
+2. Press '1' to open Web Analyzer
+3. Press '5' for Security Headers Analysis
+4. Review security header presence
+5. Press '4' for SSL Certificate check
+6. Verify certificate expiration
 ```
 
 ---
@@ -191,68 +292,52 @@ CobraScan/
 }
 ```
 
----
-
-## 🛠️ Advanced Usage
-
-### Adding Custom Modules
-
-The modular architecture makes it easy to extend functionality:
-
-```python
-# Example: Create custom_scanner.py
-class CustomScanner:
-    def __init__(self, url):
-        self.url = url
-    
-    def custom_scan(self):
-        # Your custom scanning logic
-        return {"result": "data"}
-
-# Import in main.py
-from custom_scanner import CustomScanner
-
-# Add to menu and integrate
-```
-
-### Automation with Scripts
-
-```python
-from web_analyzer import WebAnalyzer
-
-# Automated scanning
-targets = ["https://site1.com", "https://site2.com"]
-for target in targets:
-    analyzer = WebAnalyzer(target)
-    result = analyzer.full_recon_scan()
-    # Process results
-```
-
-
----
 
 ## 📋 Roadmap
 
-### Planned Features
+### Current Modules
+- [x] **Web Analyzer** - HTTP, DNS, SSL, ports, headers, tech detection
 
-- [ ] **Subdomain Enumeration** - Automated subdomain discovery
-- [ ] **Vulnerability Scanning** - CVE detection and analysis
-- [ ] **HTML/PDF Reports** - Professional report generation
-- [ ] **API Integration** - Shodan, VirusTotal, SecurityTrails
-- [ ] **WHOIS Lookup** - Domain registration information
-- [ ] **Screenshot Capture** - Automated visual documentation
-- [ ] **Custom User Agents** - Configurable request headers
-- [ ] **Proxy Support** - SOCKS/HTTP proxy configuration
-- [ ] **Plugin System** - Extensible module architecture
+### Planned Modules
+
+- [ ] **Subdomain Enumerator** - Automated subdomain discovery
+- [ ] **Vulnerability Scanner** - CVE detection and OWASP Top 10
+- [ ] **API Tester** - REST/GraphQL endpoint testing
+- [ ] **Content Discovery** - Hidden files and directory enumeration
+- [ ] **Network Mapper** - Network topology visualization
+- [ ] **OSINT Collector** - Open-source intelligence gathering
+- [ ] **WordPress Scanner** - WP-specific vulnerability detection
+- [ ] **SQL Injection Tester** - Automated SQLi detection
+- [ ] **XSS Detector** - Cross-site scripting vulnerability finder
+- [ ] **Report Generator** - HTML/PDF professional reports
+
+### Core Features
+
 - [ ] **Multi-threading** - Concurrent scanning for speed
+- [ ] **Proxy Support** - SOCKS/HTTP proxy configuration
+- [ ] **API Integration** - Shodan, VirusTotal, SecurityTrails
 - [ ] **WAF Detection** - Web Application Firewall identification
-- [ ] **API Endpoint Discovery** - REST/GraphQL endpoint enumeration
+- [ ] **Rate Limiting** - Respectful scanning controls
+- [ ] **Custom User Agents** - Configurable request headers
+- [ ] **Export Formats** - CSV, XML, HTML reports
+- [ ] **Scheduled Scans** - Automated periodic scanning
+- [ ] **Diff Mode** - Compare scan results over time
+- [ ] **Notification System** - Email/Slack/Discord alerts
 
 ---
 
 ## 📝 Changelog
 
-### Version 2.0.0 (Current)
+### Version 1.2.5 (Current)
+- 🎉 **Modular Architecture** - Complete refactor to plugin system
+- ✨ Dynamic module loading and menu generation
+- ✨ Module template for easy extension
+- ✨ Improved code organization and maintainability
+- ✨ Separated GUI framework from business logic
+- 🐛 Fixed banner spacing issues
+- 📚 Added module creation guide
+
+### Version 1.2.0
 - 🎉 Rebranded to CobraScan
 - ✨ Modular architecture with separate files
 - ✨ Target manager for single/batch scanning
@@ -265,8 +350,6 @@ for target in targets:
 - ✅ Basic scanning functionality
 - ✅ Interactive CLI interface
 - ✅ JSON export capability
-
----
 
 ---
 
@@ -289,6 +372,8 @@ for target in targets:
 - Cause service disruption
 
 **Users are solely responsible for compliance with all applicable laws and regulations.**
+
+---
 
 ## 📄 License
 
@@ -315,7 +400,7 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+SOFTWARE. 
 ```
 
 ---
@@ -326,11 +411,23 @@ SOFTWARE.
 
 ---
 
+## 🤝 Contributing
+
+Contributions are welcome! Here's how you can help:
+
+1. **Fork the repository**
+2. **Create a feature branch** (`git checkout -b feature/AmazingModule`)
+3. **Create your module** using the template
+4. **Commit your changes** (`git commit -m 'Add:  Amazing new module'`)
+5. **Push to branch** (`git push origin feature/AmazingModule`)
+6. **Open a Pull Request**
+
+
 ## 📞 Support
 
 - **Issues:** [GitHub Issues](https://github.com/Syn2Much/CobraScan/issues)
 - **Discussions:** [GitHub Discussions](https://github.com/Syn2Much/CobraScan/discussions)
-- **Email:** dev@sinners.city
+- **Email:** dev@sinners. city
 
 ---
 
@@ -344,7 +441,6 @@ SOFTWARE.
 
 <div align="center">
 
-
 ### 🕵️ CobraScan - The All Knowing Recon Tool 🕵️
 
 *"In the world of reconnaissance, knowledge is power. CobraScan gives you all-seeing eyes."*
@@ -355,7 +451,7 @@ SOFTWARE.
 
 ---
 
+**Made with 🐍 by Syn2Much**
 
 </div>
-
-
+```
