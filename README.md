@@ -197,24 +197,6 @@ OmniScan/
 
 ## 📊 Sample Output
 
-### Quick Scan Output
-```
-╔════════════════��═════════════════════════════════════════════╗
-║                        OmniScan                              ║
-║              Advanced Web Reconnaissance Tool                ║
-╚══════════════════════════════════════════════════════════════╝
-
-[✓] Scan Complete! 
-
-URL: https://example.com/
-Hostname: example.com
-Status: 200 OK
-Response Time: 0.245s
-Content Length: 1256 bytes
-Encoding: utf-8
-Server: nginx/1.18.0
-```
-
 ### JSON Output Example
 ```json
 {
