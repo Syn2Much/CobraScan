@@ -1,12 +1,12 @@
 
-# OmniScan 🔍 
- A comprehensive web reconnaissance tool that performs multiple security scans and analyses in one unified interface.
+# CobraScan 🐍
 
-> **Omni** (Latin:  "all", "every") - of all things.
+A all in one comprehensive reconnaissance tool that performs multiple security scans and analyses in one unified interactive user interface.
+
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/Syn2Much/OmniScan/graphs/commit-activity)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/Syn2Much/CobraScan/graphs/commit-activity)
 
 
 ---
@@ -40,8 +40,8 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/Syn2Much/OmniScan.git
-cd OmniScan
+git clone https://github.com/Syn2Much/CobraScan.git
+cd CobraScan
 
 # Install dependencies
 pip install -r requirements.txt
@@ -92,13 +92,13 @@ Access the configuration menu by pressing **C** from the main menu.
 | Setting | Description | Default |
 |---------|-------------|---------|
 | **Timeout** | Request timeout in seconds | 10 |
-| **Output File** | JSON output filename | `OmniScan_results.json` |
+| **Output File** | JSON output filename | `CobraScan_results.json` |
 | **Auto-Save** | Automatically save detailed scans | True |
 | **Verbose** | Enable verbose output | True |
 
 ### Saving/Loading Configuration
 
-Configuration is saved to `OmniScan_config.json` and persists between sessions.
+Configuration is saved to `CobraScan_config.json` and persists between sessions.
 
 ---
 
@@ -106,7 +106,7 @@ Configuration is saved to `OmniScan_config.json` and persists between sessions.
 ## 📁 Project Structure
 
 ```
-OmniScan/
+CobraScan/
 │
 ├── main.py                 # Main GUI application
 ├── web_analyzer.py         # Core scanning engine
@@ -116,8 +116,8 @@ OmniScan/
 ├── README. md               # This file
 │
 ├── targets.txt             # Sample target list (user-created)
-├── OmniScan_config.json    # Configuration file (auto-generated)
-└── OmniScan_results.json   # Scan results (auto-generated)
+├── CobraScan_config.json    # Configuration file (auto-generated)
+└── CobraScan_results.json   # Scan results (auto-generated)
 ```
 
 ---
@@ -131,7 +131,7 @@ OmniScan/
 2. Select option '1' (Load Single URL/IP)
 3. Enter: https://example.com
 4. Press '8' for Full Reconnaissance Scan
-5. Results saved to OmniScan_results. json
+5. Results saved to CobraScan_results. json
 ```
 
 ### Example 2: Batch Scanning
@@ -253,7 +253,7 @@ for target in targets:
 ## 📝 Changelog
 
 ### Version 2.0.0 (Current)
-- 🎉 Rebranded to OmniScan
+- 🎉 Rebranded to CobraScan
 - ✨ Modular architecture with separate files
 - ✨ Target manager for single/batch scanning
 - ✨ Enhanced error handling
@@ -297,7 +297,7 @@ This project is licensed under the MIT License - see below for details:
 ```
 MIT License
 
-Copyright (c) 2024 OmniScan
+Copyright (c) 2024 CobraScan
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -328,8 +328,8 @@ SOFTWARE.
 
 ## 📞 Support
 
-- **Issues:** [GitHub Issues](https://github.com/Syn2Much/OmniScan/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/Syn2Much/OmniScan/discussions)
+- **Issues:** [GitHub Issues](https://github.com/Syn2Much/CobraScan/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/Syn2Much/CobraScan/discussions)
 - **Email:** dev@sinners.city
 
 ---
@@ -345,13 +345,13 @@ SOFTWARE.
 <div align="center">
 
 
-### 🕵️ OmniScan - The All Knowing Recon Tool 🕵️
+### 🕵️ CobraScan - The All Knowing Recon Tool 🕵️
 
-*"In the world of reconnaissance, knowledge is power. OmniScan gives you all-seeing eyes."*
+*"In the world of reconnaissance, knowledge is power. CobraScan gives you all-seeing eyes."*
 
 ⭐ **Star this repo if you find it useful!** ⭐
 
-[Report Bug](https://github.com/Syn2Much/OmniScan/issues) · [Request Feature](https://github.com/Syn2Much/OmniScan/issues) · [Documentation](https://github.com/Syn2Much/OmniScan/wiki)
+[Report Bug](https://github.com/Syn2Much/CobraScan/issues) · [Request Feature](https://github.com/Syn2Much/CobraScan/issues) · [Documentation](https://github.com/Syn2Much/CobraScan/wiki)
 
 ---
 
