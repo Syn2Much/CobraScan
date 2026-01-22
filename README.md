@@ -1,15 +1,16 @@
 
 # OmniScan 🔍
 
+> **Omni** (Latin:  "all", "every") - A comprehensive scanning solution that sees all aspects of your target.
+
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/Syn2Much/omniscan/graphs/commit-activity)
 
- **Omni** (Latin:  "all", "every") - A comprehensive scanning solution that sees all aspects of your target. 
 
 ---
 
-## ✨ Features
+##  Features
 
 ### 🎯 Core Scanning Capabilities
 - **Quick Scan** - Fast HTTP reconnaissance with response time analysis
