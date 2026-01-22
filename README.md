@@ -272,105 +272,6 @@ for target in targets:
     # Process results
 ```
 
----
-
-## ⚠️ Legal Disclaimer
-
-**IMPORTANT:** This tool is designed for **authorized security testing and research purposes only**. 
-
-### Ethical Use Guidelines
-
-✅ **DO:**
-- Use on systems you own or have explicit permission to test
-- Respect robots.txt and terms of service
-- Use for educational and security research
-- Report vulnerabilities responsibly
-
-❌ **DON'T:**
-- Scan systems without authorization
-- Use for malicious purposes
-- Violate computer fraud laws
-- Cause service disruption
-
-**Users are solely responsible for compliance with all applicable laws and regulations.**
-
----
-
-## 🔒 Security Considerations
-
-### Rate Limiting
-- Default timeout: 10 seconds
-- Port scanning may trigger IDS/IPS alerts
-- Consider rate limiting for batch scans
-
-### Data Privacy
-- Scan results may contain sensitive information
-- Store results securely
-- Comply with data protection regulations (GDPR, etc.)
-
-### Operational Security
-- Use VPN when testing remote systems
-- Obtain written authorization before testing
-- Maintain audit logs of scanning activities
-
----
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**Issue:** DNS resolution errors
-```
-Solution: Check internet connectivity and DNS settings
-Verify target hostname is correct
-```
-
-**Issue:** SSL certificate errors
-```
-Solution: Target may not support HTTPS
-Check firewall/proxy settings
-```
-
-**Issue:** Port scanning fails
-```
-Solution: Firewall may be blocking connections
-Increase timeout in configuration
-Some ports may require elevated privileges
-```
-
-**Issue:** Permission denied errors
-```
-Solution: Run with appropriate permissions
-Some operations (port < 1024) may require sudo/admin
-```
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Here's how you can help:
-
-1. **Fork the repository**
-2. **Create a feature branch**
-   ```bash
-   git checkout -b feature/amazing-feature
-   ```
-3. **Commit your changes**
-   ```bash
-   git commit -m 'Add amazing feature'
-   ```
-4. **Push to the branch**
-   ```bash
-   git push origin feature/amazing-feature
-   ```
-5. **Open a Pull Request**
-
-### Development Guidelines
-- Follow PEP 8 style guide
-- Add docstrings to all functions
-- Include type hints where appropriate
-- Test on multiple platforms
-- Update documentation
 
 ---
 
@@ -410,6 +311,28 @@ Contributions are welcome! Here's how you can help:
 - ✅ JSON export capability
 
 ---
+
+---
+
+## ⚠️ Legal Disclaimer
+
+**IMPORTANT:** This tool is designed for **authorized security testing and research purposes only**. 
+
+### Ethical Use Guidelines
+
+✅ **DO:**
+- Use on systems you own or have explicit permission to test
+- Respect robots.txt and terms of service
+- Use for educational and security research
+- Report vulnerabilities responsibly
+
+❌ **DON'T:**
+- Scan systems without authorization
+- Use for malicious purposes
+- Violate computer fraud laws
+- Cause service disruption
+
+**Users are solely responsible for compliance with all applicable laws and regulations.**
 
 ## 📄 License
 
