@@ -1,6 +1,6 @@
-# CobraScan 🐍
+# Cobra
 
-*a powerful, modular reconnaissance tool designed for security professionals, ethical hackers, and system administrators. It provides a unified interface for multiple security scanning and analysis techniques through an extensible plugin architecture*
+*a modular web/domain reconnaissance tool designed for security professionals, ethical hackers, and system administrators.*
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
