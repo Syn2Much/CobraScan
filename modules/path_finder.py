@@ -8,6 +8,7 @@ import time
 import json
 import datetime
 import requests
+from helpers.http_client import request_with_rotation
 from urllib.parse import urlparse, urljoin
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -19,158 +20,382 @@ class PathFinder:
 
     # Login and Admin paths
     ADMIN_PATHS = [
-        '/admin', '/admin/', '/administrator', '/administrator/',
-        '/admin/login', '/admin/login.php', '/admin/index.php',
-        '/admin.php', '/adminpanel', '/admincp', '/admin_area',
-        '/panel', '/panel/', '/cpanel', '/controlpanel',
-        '/login', '/login/', '/login.php', '/login.html', '/signin',
-        '/user/login', '/users/login', '/auth/login', '/account/login',
-        '/wp-login.php', '/wp-admin', '/wp-admin/',
-        '/manager', '/manager/', '/management', '/dashboard',
-        '/admin/dashboard', '/secure', '/secure/', '/private',
-        '/backend', '/backend/', '/adminarea', '/siteadmin',
-        '/moderator', '/webadmin', '/admincontrol', '/admin_login',
-        '/admin/admin', '/admin/account', '/admin/home',
-        '/phpmyadmin', '/phpmyadmin/', '/pma', '/myadmin',
-        '/mysql', '/mysqladmin', '/db', '/database',
-        '/adminer', '/adminer.php',
+        "/admin",
+        "/admin/",
+        "/administrator",
+        "/administrator/",
+        "/admin/login",
+        "/admin/login.php",
+        "/admin/index.php",
+        "/admin.php",
+        "/adminpanel",
+        "/admincp",
+        "/admin_area",
+        "/panel",
+        "/panel/",
+        "/cpanel",
+        "/controlpanel",
+        "/login",
+        "/login/",
+        "/login.php",
+        "/login.html",
+        "/signin",
+        "/user/login",
+        "/users/login",
+        "/auth/login",
+        "/account/login",
+        "/wp-login.php",
+        "/wp-admin",
+        "/wp-admin/",
+        "/manager",
+        "/manager/",
+        "/management",
+        "/dashboard",
+        "/admin/dashboard",
+        "/secure",
+        "/secure/",
+        "/private",
+        "/backend",
+        "/backend/",
+        "/adminarea",
+        "/siteadmin",
+        "/moderator",
+        "/webadmin",
+        "/admincontrol",
+        "/admin_login",
+        "/admin/admin",
+        "/admin/account",
+        "/admin/home",
+        "/phpmyadmin",
+        "/phpmyadmin/",
+        "/pma",
+        "/myadmin",
+        "/mysql",
+        "/mysqladmin",
+        "/db",
+        "/database",
+        "/adminer",
+        "/adminer.php",
     ]
 
     # CMS-specific paths (WordPress, Joomla, Drupal, etc.)
     CMS_PATHS = [
         # WordPress
-        '/wp-content/', '/wp-includes/', '/wp-json/', '/wp-json/wp/v2/',
-        '/wp-config.php', '/wp-config.php.bak', '/wp-config.txt',
-        '/xmlrpc.php', '/wp-cron.php', '/wp-settings.php',
-        '/wp-content/uploads/', '/wp-content/plugins/', '/wp-content/themes/',
-        '/wp-content/debug.log', '/wp-content/backup-db/',
-        '/readme.html', '/license.txt',
+        "/wp-content/",
+        "/wp-includes/",
+        "/wp-json/",
+        "/wp-json/wp/v2/",
+        "/wp-config.php",
+        "/wp-config.php.bak",
+        "/wp-config.txt",
+        "/xmlrpc.php",
+        "/wp-cron.php",
+        "/wp-settings.php",
+        "/wp-content/uploads/",
+        "/wp-content/plugins/",
+        "/wp-content/themes/",
+        "/wp-content/debug.log",
+        "/wp-content/backup-db/",
+        "/readme.html",
+        "/license.txt",
         # Joomla
-        '/administrator/', '/administrator/index.php',
-        '/configuration.php', '/configuration.php.bak',
-        '/components/', '/modules/', '/plugins/', '/templates/',
-        '/cache/', '/tmp/', '/logs/',
-        '/htaccess.txt', '/web.config.txt',
+        "/administrator/",
+        "/administrator/index.php",
+        "/configuration.php",
+        "/configuration.php.bak",
+        "/components/",
+        "/modules/",
+        "/plugins/",
+        "/templates/",
+        "/cache/",
+        "/tmp/",
+        "/logs/",
+        "/htaccess.txt",
+        "/web.config.txt",
         # Drupal
-        '/user/', '/user/login', '/node/', '/admin/content',
-        '/sites/default/', '/sites/default/files/',
-        '/sites/default/settings.php', '/CHANGELOG.txt',
-        '/core/', '/profiles/', '/themes/',
+        "/user/",
+        "/user/login",
+        "/node/",
+        "/admin/content",
+        "/sites/default/",
+        "/sites/default/files/",
+        "/sites/default/settings.php",
+        "/CHANGELOG.txt",
+        "/core/",
+        "/profiles/",
+        "/themes/",
         # Magento
-        '/downloader/', '/app/etc/local.xml', '/var/log/',
-        '/skin/', '/media/', '/js/',
+        "/downloader/",
+        "/app/etc/local.xml",
+        "/var/log/",
+        "/skin/",
+        "/media/",
+        "/js/",
         # Laravel
-        '/.env', '/storage/', '/storage/logs/', '/storage/logs/laravel.log',
-        '/vendor/', '/artisan', '/bootstrap/',
+        "/.env",
+        "/storage/",
+        "/storage/logs/",
+        "/storage/logs/laravel.log",
+        "/vendor/",
+        "/artisan",
+        "/bootstrap/",
     ]
 
     # API and hidden endpoints
     API_PATHS = [
-        '/api', '/api/', '/api/v1', '/api/v1/', '/api/v2', '/api/v2/',
-        '/api/v3', '/api/users', '/api/user', '/api/admin',
-        '/api/login', '/api/auth', '/api/token', '/api/config',
-        '/api/status', '/api/health', '/api/info', '/api/version',
-        '/rest', '/rest/', '/rest/api', '/v1', '/v2', '/v3',
-        '/graphql', '/graphiql', '/graphql/console',
-        '/swagger', '/swagger/', '/swagger-ui', '/swagger-ui/',
-        '/swagger-ui.html', '/swagger.json', '/swagger.yaml',
-        '/api-docs', '/api-docs/', '/docs', '/docs/', '/redoc',
-        '/openapi', '/openapi.json', '/openapi.yaml',
-        '/.well-known/', '/.well-known/security.txt',
-        '/health', '/healthz', '/healthcheck', '/status', '/ping',
-        '/metrics', '/prometheus', '/actuator', '/actuator/health',
-        '/debug', '/debug/', '/trace', '/console',
-        '/internal', '/internal/', '/private-api',
+        "/api",
+        "/api/",
+        "/api/v1",
+        "/api/v1/",
+        "/api/v2",
+        "/api/v2/",
+        "/api/v3",
+        "/api/users",
+        "/api/user",
+        "/api/admin",
+        "/api/login",
+        "/api/auth",
+        "/api/token",
+        "/api/config",
+        "/api/status",
+        "/api/health",
+        "/api/info",
+        "/api/version",
+        "/rest",
+        "/rest/",
+        "/rest/api",
+        "/v1",
+        "/v2",
+        "/v3",
+        "/graphql",
+        "/graphiql",
+        "/graphql/console",
+        "/swagger",
+        "/swagger/",
+        "/swagger-ui",
+        "/swagger-ui/",
+        "/swagger-ui.html",
+        "/swagger.json",
+        "/swagger.yaml",
+        "/api-docs",
+        "/api-docs/",
+        "/docs",
+        "/docs/",
+        "/redoc",
+        "/openapi",
+        "/openapi.json",
+        "/openapi.yaml",
+        "/.well-known/",
+        "/.well-known/security.txt",
+        "/health",
+        "/healthz",
+        "/healthcheck",
+        "/status",
+        "/ping",
+        "/metrics",
+        "/prometheus",
+        "/actuator",
+        "/actuator/health",
+        "/debug",
+        "/debug/",
+        "/trace",
+        "/console",
+        "/internal",
+        "/internal/",
+        "/private-api",
     ]
 
     # Sensitive files and backup paths
     SENSITIVE_PATHS = [
         # Config files
-        '/.env', '/.env.local', '/.env.production', '/.env.backup',
-        '/config.php', '/config.inc.php', '/config.yml', '/config.yaml',
-        '/config.json', '/settings.php', '/settings.py', '/settings.json',
-        '/database.yml', '/secrets.yml', '/credentials.json',
-        '/application.properties', '/application.yml',
+        "/.env",
+        "/.env.local",
+        "/.env.production",
+        "/.env.backup",
+        "/config.php",
+        "/config.inc.php",
+        "/config.yml",
+        "/config.yaml",
+        "/config.json",
+        "/settings.php",
+        "/settings.py",
+        "/settings.json",
+        "/database.yml",
+        "/secrets.yml",
+        "/credentials.json",
+        "/application.properties",
+        "/application.yml",
         # Backup files
-        '/backup', '/backup/', '/backups', '/backups/', '/bak',
-        '/backup.sql', '/backup.zip', '/backup.tar.gz', '/db.sql',
-        '/database.sql', '/dump.sql', '/data.sql', '/mysql.sql',
-        '/site.zip', '/www.zip', '/html.zip', '/web.zip',
-        '/.backup', '/old', '/old/', '/archive', '/archive/',
+        "/backup",
+        "/backup/",
+        "/backups",
+        "/backups/",
+        "/bak",
+        "/backup.sql",
+        "/backup.zip",
+        "/backup.tar.gz",
+        "/db.sql",
+        "/database.sql",
+        "/dump.sql",
+        "/data.sql",
+        "/mysql.sql",
+        "/site.zip",
+        "/www.zip",
+        "/html.zip",
+        "/web.zip",
+        "/.backup",
+        "/old",
+        "/old/",
+        "/archive",
+        "/archive/",
         # Git/Version control
-        '/.git', '/.git/', '/.git/config', '/.git/HEAD',
-        '/.gitignore', '/.gitattributes',
-        '/.svn', '/.svn/', '/.svn/entries',
-        '/.hg', '/.hg/', '/.bzr', '/.bzr/',
+        "/.git",
+        "/.git/",
+        "/.git/config",
+        "/.git/HEAD",
+        "/.gitignore",
+        "/.gitattributes",
+        "/.svn",
+        "/.svn/",
+        "/.svn/entries",
+        "/.hg",
+        "/.hg/",
+        "/.bzr",
+        "/.bzr/",
         # Server files
-        '/.htaccess', '/.htpasswd', '/web.config', '/server-status',
-        '/server-info', '/nginx.conf', '/httpd.conf',
-        '/robots.txt', '/sitemap.xml', '/sitemap_index.xml',
-        '/crossdomain.xml', '/clientaccesspolicy.xml',
+        "/.htaccess",
+        "/.htpasswd",
+        "/web.config",
+        "/server-status",
+        "/server-info",
+        "/nginx.conf",
+        "/httpd.conf",
+        "/robots.txt",
+        "/sitemap.xml",
+        "/sitemap_index.xml",
+        "/crossdomain.xml",
+        "/clientaccesspolicy.xml",
         # IDE/Editor files
-        '/.idea/', '/.vscode/', '/.project', '/.settings/',
-        '/nbproject/', '/.DS_Store', '/Thumbs.db',
+        "/.idea/",
+        "/.vscode/",
+        "/.project",
+        "/.settings/",
+        "/nbproject/",
+        "/.DS_Store",
+        "/Thumbs.db",
         # Log files
-        '/logs', '/logs/', '/log', '/log/', '/error.log', '/access.log',
-        '/debug.log', '/app.log', '/application.log',
-        '/error_log', '/errors.log', '/php_errors.log',
+        "/logs",
+        "/logs/",
+        "/log",
+        "/log/",
+        "/error.log",
+        "/access.log",
+        "/debug.log",
+        "/app.log",
+        "/application.log",
+        "/error_log",
+        "/errors.log",
+        "/php_errors.log",
         # Common directories
-        '/temp', '/temp/', '/tmp', '/tmp/', '/cache', '/cache/',
-        '/uploads', '/uploads/', '/files', '/files/',
-        '/assets', '/assets/', '/static', '/static/',
-        '/media', '/media/', '/images', '/img/',
-        '/includes', '/include', '/inc', '/lib', '/libs',
-        '/src', '/source', '/test', '/tests', '/spec',
+        "/temp",
+        "/temp/",
+        "/tmp",
+        "/tmp/",
+        "/cache",
+        "/cache/",
+        "/uploads",
+        "/uploads/",
+        "/files",
+        "/files/",
+        "/assets",
+        "/assets/",
+        "/static",
+        "/static/",
+        "/media",
+        "/media/",
+        "/images",
+        "/img/",
+        "/includes",
+        "/include",
+        "/inc",
+        "/lib",
+        "/libs",
+        "/src",
+        "/source",
+        "/test",
+        "/tests",
+        "/spec",
     ]
 
     # Status codes that indicate found paths
     FOUND_CODES = [200, 201, 204, 301, 302, 303, 307, 308, 401, 403]
 
-    def __init__(self, url, timeout=10, threads=10, proxies=None):
+    def __init__(self, url, timeout=10, threads=10, proxies=None, proxy_manager=None):
         """Initialize path finder."""
         self.url = self._normalize_url(url)
         self.timeout = timeout
         self.threads = threads
         self.proxies = proxies
+        self.proxy_manager = proxy_manager
         self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        })
-        if proxies:
-            self.session.proxies.update(proxies)
+        self.session.headers.update(
+            {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            }
+        )
         self.results = []
 
     def _normalize_url(self, url):
         """Normalize URL to ensure proper format."""
         url = url.strip()
-        if not url.startswith(('http://', 'https://')):
-            url = f'https://{url}'
-        return url.rstrip('/')
+        if not url.startswith(("http://", "https://")):
+            url = f"https://{url}"
+        return url.rstrip("/")
 
     def _check_path(self, path):
         """Check if a path exists on the target."""
-        full_url = urljoin(self.url + '/', path.lstrip('/'))
+        full_url = urljoin(self.url + "/", path.lstrip("/"))
         try:
-            response = self.session.get(
+            response = request_with_rotation(
+                "GET",
                 full_url,
+                proxy_manager=self.proxy_manager,
                 timeout=self.timeout,
                 allow_redirects=False,
-                verify=False
+                verify=False,
+                headers=self.session.headers,
             )
             return {
-                'path': path,
-                'url': full_url,
-                'status_code': response.status_code,
-                'content_length': len(response.content),
-                'content_type': response.headers.get('Content-Type', 'Unknown'),
-                'found': response.status_code in self.FOUND_CODES
+                "path": path,
+                "url": full_url,
+                "status_code": response.status_code,
+                "content_length": len(response.content),
+                "content_type": response.headers.get("Content-Type", "Unknown"),
+                "found": response.status_code in self.FOUND_CODES,
+                "used_proxy": getattr(response, "_used_proxy", None) or "DIRECT",
             }
         except requests.exceptions.Timeout:
-            return {'path': path, 'url': full_url, 'status_code': 'TIMEOUT', 'found': False}
+            return {
+                "path": path,
+                "url": full_url,
+                "status_code": "TIMEOUT",
+                "found": False,
+            }
         except requests.exceptions.ConnectionError:
-            return {'path': path, 'url': full_url, 'status_code': 'CONN_ERR', 'found': False}
+            return {
+                "path": path,
+                "url": full_url,
+                "status_code": "CONN_ERR",
+                "found": False,
+            }
         except Exception as e:
-            return {'path': path, 'url': full_url, 'status_code': 'ERROR', 'error': str(e), 'found': False}
+            return {
+                "path": path,
+                "url": full_url,
+                "status_code": "ERROR",
+                "error": str(e),
+                "found": False,
+            }
 
     def _scan_paths(self, paths, callback=None):
         """Scan a list of paths using thread pool."""
@@ -183,12 +408,12 @@ class PathFinder:
             for i, future in enumerate(as_completed(futures), 1):
                 result = future.result()
                 results.append(result)
-                if result['found']:
+                if result["found"]:
                     found.append(result)
                 if callback:
                     callback(i, total, result)
 
-        return {'all_results': results, 'found': found, 'total_checked': total}
+        return {"all_results": results, "found": found, "total_checked": total}
 
     def scan_admin_paths(self, callback=None):
         """Scan for admin and login paths."""
@@ -208,19 +433,25 @@ class PathFinder:
 
     def scan_all_paths(self, callback=None):
         """Scan all path categories."""
-        all_paths = list(set(
-            self.ADMIN_PATHS +
-            self.CMS_PATHS +
-            self.API_PATHS +
-            self.SENSITIVE_PATHS
-        ))
+        all_paths = list(
+            set(
+                self.ADMIN_PATHS
+                + self.CMS_PATHS
+                + self.API_PATHS
+                + self.SENSITIVE_PATHS
+            )
+        )
         return self._scan_paths(all_paths, callback)
 
     def scan_custom_wordlist(self, wordlist_path, callback=None):
         """Scan using a custom wordlist file."""
         try:
-            with open(wordlist_path, 'r') as f:
-                paths = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+            with open(wordlist_path, "r") as f:
+                paths = [
+                    line.strip()
+                    for line in f
+                    if line.strip() and not line.startswith("#")
+                ]
             return self._scan_paths(paths, callback)
         except FileNotFoundError:
             raise Exception(f"Wordlist not found: {wordlist_path}")
@@ -234,7 +465,9 @@ class PathFinderModule:
     def __init__(self):
         self.name = "Sensitive Path Finder"
         self.version = "1.0.0"
-        self.description = "Discovers sensitive paths, admin panels, and hidden endpoints"
+        self.description = (
+            "Discovers sensitive paths, admin panels, and hidden endpoints"
+        )
         self.proxy_manager = None
 
     def run(self, config, target_manager, proxy_manager=None):
@@ -293,7 +526,9 @@ class PathFinderModule:
 
         # Proxy status
         proxy_count = self.proxy_manager.get_count() if self.proxy_manager else 0
-        proxy_display = f"{proxy_count} proxies" if proxy_count > 0 else "Direct connection"
+        proxy_display = (
+            f"{proxy_count} proxies" if proxy_count > 0 else "Direct connection"
+        )
 
         status = f"""{Colors.OKCYAN}Module Status:{Colors.ENDC}
 +-------------------------------------------------------------+
@@ -336,12 +571,20 @@ class PathFinderModule:
         if current:
             return current
         elif target_list:
-            print(f"{Colors.WARNING}[!] You have {len(target_list)} targets loaded.{Colors.ENDC}")
-            print(f"{Colors.WARNING}[!] Use 'Batch Scan' (option 7) to scan all.{Colors.ENDC}")
+            print(
+                f"{Colors.WARNING}[!] You have {len(target_list)} targets loaded.{Colors.ENDC}"
+            )
+            print(
+                f"{Colors.WARNING}[!] Use 'Batch Scan' (option 7) to scan all.{Colors.ENDC}"
+            )
 
-            choice = input(
-                f"{Colors.OKCYAN}Enter target number (or 'N' for new): {Colors.ENDC}"
-            ).strip().upper()
+            choice = (
+                input(
+                    f"{Colors.OKCYAN}Enter target number (or 'N' for new): {Colors.ENDC}"
+                )
+                .strip()
+                .upper()
+            )
 
             if choice == "N":
                 target = input(
@@ -380,9 +623,9 @@ class PathFinderModule:
         bar = "=" * filled + "-" * (bar_length - filled)
 
         status = ""
-        if result['found']:
+        if result["found"]:
             status = f"{Colors.OKGREEN}[{result['status_code']}]{Colors.ENDC}"
-        elif result.get('status_code') == 404:
+        elif result.get("status_code") == 404:
             status = ""
         else:
             status = f"[{result.get('status_code', '?')}]"
@@ -395,8 +638,8 @@ class PathFinderModule:
 
     def _display_results(self, results, scan_type):
         """Display scan results in a formatted table."""
-        found = results.get('found', [])
-        total = results.get('total_checked', 0)
+        found = results.get("found", [])
+        total = results.get("total_checked", 0)
 
         print(f"\n\n{Colors.HEADER}{'=' * 60}{Colors.ENDC}")
         print(f"{Colors.OKGREEN}[+] Scan Complete: {scan_type}{Colors.ENDC}")
@@ -406,16 +649,22 @@ class PathFinderModule:
 
         if found:
             print(f"\n{Colors.OKGREEN}Found Paths:{Colors.ENDC}")
-            print(f"{Colors.OKCYAN}{'Status':<8} {'Size':<10} {'Path':<45}{Colors.ENDC}")
+            print(
+                f"{Colors.OKCYAN}{'Status':<8} {'Size':<10} {'Path':<45}{Colors.ENDC}"
+            )
             print("-" * 65)
 
             # Sort by status code
-            found.sort(key=lambda x: (x['status_code'] if isinstance(x['status_code'], int) else 999))
+            found.sort(
+                key=lambda x: (
+                    x["status_code"] if isinstance(x["status_code"], int) else 999
+                )
+            )
 
             for item in found:
-                status = item['status_code']
-                size = item.get('content_length', 0)
-                path = item['path']
+                status = item["status_code"]
+                size = item.get("content_length", 0)
+                path = item["path"]
 
                 # Color based on status
                 if status == 200:
@@ -466,10 +715,17 @@ class PathFinderModule:
             return
 
         print(f"{Colors.WARNING}[*] Scanning {target} for admin paths...{Colors.ENDC}")
-        print(f"{Colors.OKCYAN}[*] Checking {len(PathFinder.ADMIN_PATHS)} paths...{Colors.ENDC}\n")
+        print(
+            f"{Colors.OKCYAN}[*] Checking {len(PathFinder.ADMIN_PATHS)} paths...{Colors.ENDC}\n"
+        )
 
         try:
-            finder = PathFinder(target, timeout=config['timeout'], proxies=self._get_proxy())
+            finder = PathFinder(
+                target,
+                timeout=config["timeout"],
+                proxies=self._get_proxy(),
+                proxy_manager=self.proxy_manager,
+            )
             results = finder.scan_admin_paths(callback=self._print_progress)
             found = self._display_results(results, "Admin/Login Paths")
 
@@ -478,9 +734,16 @@ class PathFinderModule:
                     "target": target,
                     "scan_type": "admin_paths",
                     "timestamp": datetime.datetime.now().isoformat(),
-                    "paths_checked": results['total_checked'],
+                    "paths_checked": results["total_checked"],
                     "paths_found": len(found),
-                    "found_paths": found
+                    "found_paths": found,
+                    "proxies_used": sorted(
+                        {
+                            r.get("used_proxy")
+                            for r in results.get("all_results", [])
+                            if r.get("used_proxy")
+                        }
+                    ),
                 }
                 self._save_results(scan_data, config["output_file"])
 
@@ -499,10 +762,17 @@ class PathFinderModule:
             return
 
         print(f"{Colors.WARNING}[*] Scanning {target} for CMS paths...{Colors.ENDC}")
-        print(f"{Colors.OKCYAN}[*] Checking {len(PathFinder.CMS_PATHS)} paths (WP, Joomla, Drupal, etc.)...{Colors.ENDC}\n")
+        print(
+            f"{Colors.OKCYAN}[*] Checking {len(PathFinder.CMS_PATHS)} paths (WP, Joomla, Drupal, etc.)...{Colors.ENDC}\n"
+        )
 
         try:
-            finder = PathFinder(target, timeout=config['timeout'], proxies=self._get_proxy())
+            finder = PathFinder(
+                target,
+                timeout=config["timeout"],
+                proxies=self._get_proxy(),
+                proxy_manager=self.proxy_manager,
+            )
             results = finder.scan_cms_paths(callback=self._print_progress)
             found = self._display_results(results, "CMS Paths")
 
@@ -511,9 +781,16 @@ class PathFinderModule:
                     "target": target,
                     "scan_type": "cms_paths",
                     "timestamp": datetime.datetime.now().isoformat(),
-                    "paths_checked": results['total_checked'],
+                    "paths_checked": results["total_checked"],
                     "paths_found": len(found),
-                    "found_paths": found
+                    "found_paths": found,
+                    "proxies_used": sorted(
+                        {
+                            r.get("used_proxy")
+                            for r in results.get("all_results", [])
+                            if r.get("used_proxy")
+                        }
+                    ),
                 }
                 self._save_results(scan_data, config["output_file"])
 
@@ -531,11 +808,20 @@ class PathFinderModule:
             input(f"\n{Colors.WARNING}Press Enter to continue...{Colors.ENDC}")
             return
 
-        print(f"{Colors.WARNING}[*] Scanning {target} for API endpoints...{Colors.ENDC}")
-        print(f"{Colors.OKCYAN}[*] Checking {len(PathFinder.API_PATHS)} paths...{Colors.ENDC}\n")
+        print(
+            f"{Colors.WARNING}[*] Scanning {target} for API endpoints...{Colors.ENDC}"
+        )
+        print(
+            f"{Colors.OKCYAN}[*] Checking {len(PathFinder.API_PATHS)} paths...{Colors.ENDC}\n"
+        )
 
         try:
-            finder = PathFinder(target, timeout=config['timeout'], proxies=self._get_proxy())
+            finder = PathFinder(
+                target,
+                timeout=config["timeout"],
+                proxies=self._get_proxy(),
+                proxy_manager=self.proxy_manager,
+            )
             results = finder.scan_api_paths(callback=self._print_progress)
             found = self._display_results(results, "API/Hidden Endpoints")
 
@@ -544,9 +830,16 @@ class PathFinderModule:
                     "target": target,
                     "scan_type": "api_paths",
                     "timestamp": datetime.datetime.now().isoformat(),
-                    "paths_checked": results['total_checked'],
+                    "paths_checked": results["total_checked"],
                     "paths_found": len(found),
-                    "found_paths": found
+                    "found_paths": found,
+                    "proxies_used": sorted(
+                        {
+                            r.get("used_proxy")
+                            for r in results.get("all_results", [])
+                            if r.get("used_proxy")
+                        }
+                    ),
                 }
                 self._save_results(scan_data, config["output_file"])
 
@@ -564,11 +857,20 @@ class PathFinderModule:
             input(f"\n{Colors.WARNING}Press Enter to continue...{Colors.ENDC}")
             return
 
-        print(f"{Colors.WARNING}[*] Scanning {target} for sensitive files...{Colors.ENDC}")
-        print(f"{Colors.OKCYAN}[*] Checking {len(PathFinder.SENSITIVE_PATHS)} paths...{Colors.ENDC}\n")
+        print(
+            f"{Colors.WARNING}[*] Scanning {target} for sensitive files...{Colors.ENDC}"
+        )
+        print(
+            f"{Colors.OKCYAN}[*] Checking {len(PathFinder.SENSITIVE_PATHS)} paths...{Colors.ENDC}\n"
+        )
 
         try:
-            finder = PathFinder(target, timeout=config['timeout'], proxies=self._get_proxy())
+            finder = PathFinder(
+                target,
+                timeout=config["timeout"],
+                proxies=self._get_proxy(),
+                proxy_manager=self.proxy_manager,
+            )
             results = finder.scan_sensitive_paths(callback=self._print_progress)
             found = self._display_results(results, "Sensitive Files")
 
@@ -577,9 +879,16 @@ class PathFinderModule:
                     "target": target,
                     "scan_type": "sensitive_paths",
                     "timestamp": datetime.datetime.now().isoformat(),
-                    "paths_checked": results['total_checked'],
+                    "paths_checked": results["total_checked"],
                     "paths_found": len(found),
-                    "found_paths": found
+                    "found_paths": found,
+                    "proxies_used": sorted(
+                        {
+                            r.get("used_proxy")
+                            for r in results.get("all_results", [])
+                            if r.get("used_proxy")
+                        }
+                    ),
                 }
                 self._save_results(scan_data, config["output_file"])
 
@@ -597,18 +906,27 @@ class PathFinderModule:
             input(f"\n{Colors.WARNING}Press Enter to continue...{Colors.ENDC}")
             return
 
-        all_paths = list(set(
-            PathFinder.ADMIN_PATHS +
-            PathFinder.CMS_PATHS +
-            PathFinder.API_PATHS +
-            PathFinder.SENSITIVE_PATHS
-        ))
+        all_paths = list(
+            set(
+                PathFinder.ADMIN_PATHS
+                + PathFinder.CMS_PATHS
+                + PathFinder.API_PATHS
+                + PathFinder.SENSITIVE_PATHS
+            )
+        )
 
         print(f"{Colors.WARNING}[*] Full scan on {target}...{Colors.ENDC}")
-        print(f"{Colors.OKCYAN}[*] Checking {len(all_paths)} unique paths...{Colors.ENDC}\n")
+        print(
+            f"{Colors.OKCYAN}[*] Checking {len(all_paths)} unique paths...{Colors.ENDC}\n"
+        )
 
         try:
-            finder = PathFinder(target, timeout=config['timeout'], proxies=self._get_proxy())
+            finder = PathFinder(
+                target,
+                timeout=config["timeout"],
+                proxies=self._get_proxy(),
+                proxy_manager=self.proxy_manager,
+            )
             results = finder.scan_all_paths(callback=self._print_progress)
             found = self._display_results(results, "All Paths")
 
@@ -617,9 +935,16 @@ class PathFinderModule:
                     "target": target,
                     "scan_type": "all_paths",
                     "timestamp": datetime.datetime.now().isoformat(),
-                    "paths_checked": results['total_checked'],
+                    "paths_checked": results["total_checked"],
                     "paths_found": len(found),
-                    "found_paths": found
+                    "found_paths": found,
+                    "proxies_used": sorted(
+                        {
+                            r.get("used_proxy")
+                            for r in results.get("all_results", [])
+                            if r.get("used_proxy")
+                        }
+                    ),
                 }
                 self._save_results(scan_data, config["output_file"])
 
@@ -647,10 +972,16 @@ class PathFinderModule:
             return
 
         try:
-            finder = PathFinder(target, timeout=config['timeout'], proxies=self._get_proxy())
-            print(f"{Colors.WARNING}[*] Loading wordlist: {wordlist_path}...{Colors.ENDC}")
+            finder = PathFinder(
+                target, timeout=config["timeout"], proxies=self._get_proxy()
+            )
+            print(
+                f"{Colors.WARNING}[*] Loading wordlist: {wordlist_path}...{Colors.ENDC}"
+            )
 
-            results = finder.scan_custom_wordlist(wordlist_path, callback=self._print_progress)
+            results = finder.scan_custom_wordlist(
+                wordlist_path, callback=self._print_progress
+            )
             found = self._display_results(results, f"Custom Wordlist ({wordlist_path})")
 
             if config.get("auto_save") and found:
@@ -659,9 +990,9 @@ class PathFinderModule:
                     "scan_type": "custom_wordlist",
                     "wordlist": wordlist_path,
                     "timestamp": datetime.datetime.now().isoformat(),
-                    "paths_checked": results['total_checked'],
+                    "paths_checked": results["total_checked"],
                     "paths_found": len(found),
-                    "found_paths": found
+                    "found_paths": found,
                 }
                 self._save_results(scan_data, config["output_file"])
 
@@ -677,7 +1008,9 @@ class PathFinderModule:
         targets = target_manager.get_target_list()
 
         if not targets:
-            print(f"{Colors.WARNING}[!] No targets loaded for batch operation{Colors.ENDC}")
+            print(
+                f"{Colors.WARNING}[!] No targets loaded for batch operation{Colors.ENDC}"
+            )
             input(f"\n{Colors.WARNING}Press Enter to continue...{Colors.ENDC}")
             return
 
@@ -694,11 +1027,11 @@ class PathFinderModule:
         scan_choice = input(f"{Colors.OKCYAN}Choice [1-5]: {Colors.ENDC}").strip()
 
         scan_map = {
-            '1': ('admin_paths', 'scan_admin_paths'),
-            '2': ('cms_paths', 'scan_cms_paths'),
-            '3': ('api_paths', 'scan_api_paths'),
-            '4': ('sensitive_paths', 'scan_sensitive_paths'),
-            '5': ('all_paths', 'scan_all_paths'),
+            "1": ("admin_paths", "scan_admin_paths"),
+            "2": ("cms_paths", "scan_cms_paths"),
+            "3": ("api_paths", "scan_api_paths"),
+            "4": ("sensitive_paths", "scan_sensitive_paths"),
+            "5": ("all_paths", "scan_all_paths"),
         }
 
         if scan_choice not in scan_map:
@@ -717,31 +1050,39 @@ class PathFinderModule:
         try:
             all_results = []
             for i, target in enumerate(targets, 1):
-                print(f"\n{Colors.HEADER}[{i}/{len(targets)}] Scanning {target}...{Colors.ENDC}")
+                print(
+                    f"\n{Colors.HEADER}[{i}/{len(targets)}] Scanning {target}...{Colors.ENDC}"
+                )
 
                 try:
-                    finder = PathFinder(target, timeout=config['timeout'], proxies=self._get_proxy())
+                    finder = PathFinder(
+                        target,
+                        timeout=config["timeout"],
+                        proxies=self._get_proxy(),
+                        proxy_manager=self.proxy_manager,
+                    )
                     method = getattr(finder, scan_method)
                     results = method(callback=self._print_progress)
 
-                    found = results.get('found', [])
-                    print(f"\n{Colors.OKGREEN}[+] Found {len(found)} paths{Colors.ENDC}")
+                    found = results.get("found", [])
+                    print(
+                        f"\n{Colors.OKGREEN}[+] Found {len(found)} paths{Colors.ENDC}"
+                    )
 
-                    all_results.append({
-                        "target": target,
-                        "scan_type": scan_type,
-                        "timestamp": datetime.datetime.now().isoformat(),
-                        "paths_checked": results['total_checked'],
-                        "paths_found": len(found),
-                        "found_paths": found
-                    })
+                    all_results.append(
+                        {
+                            "target": target,
+                            "scan_type": scan_type,
+                            "timestamp": datetime.datetime.now().isoformat(),
+                            "paths_checked": results["total_checked"],
+                            "paths_found": len(found),
+                            "found_paths": found,
+                        }
+                    )
 
                 except Exception as e:
                     print(f"{Colors.FAIL}[!] Error: {str(e)}{Colors.ENDC}")
-                    all_results.append({
-                        "target": target,
-                        "error": str(e)
-                    })
+                    all_results.append({"target": target, "error": str(e)})
 
             # Save batch results
             batch_file = f"batch_pathfinder_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
@@ -754,7 +1095,9 @@ class PathFinderModule:
             print(f"{Colors.HEADER}{'=' * 60}{Colors.ENDC}")
             print(f"{Colors.OKCYAN}Targets Scanned: {len(targets)}{Colors.ENDC}")
 
-            total_found = sum(r.get('paths_found', 0) for r in all_results if 'paths_found' in r)
+            total_found = sum(
+                r.get("paths_found", 0) for r in all_results if "paths_found" in r
+            )
             print(f"{Colors.OKCYAN}Total Paths Found: {total_found}{Colors.ENDC}")
             print(f"{Colors.OKCYAN}Results Saved: {batch_file}{Colors.ENDC}")
 

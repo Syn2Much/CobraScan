@@ -14,6 +14,8 @@ from pathlib import Path
 from helpers.target_manager import TargetManager
 from helpers.proxy_manager import ProxyManager
 from helpers.utils import Colors, clear_screen
+from helpers.report_builder import generate_html_report
+from helpers.report_server import serve_reports
 
 
 class CobraScanner:
@@ -21,7 +23,7 @@ class CobraScanner:
 
     def __init__(self):
         self.app_name = "CobraScan"
-        self.version = "2.0.0"
+        self.version = "2.3.5"
         self.config = {
             "timeout": 10,
             "output_file": "cobra_scan_results.json",
@@ -181,6 +183,7 @@ class CobraScanner:
 ┌─────────────────────────────────────────────────────────────┐
 │ T.  Load Target (URL/IP or File)                            │
 │ P.  Load Proxies (HTTP/HTTPS from File)                     │
+│ R.  Results (View / Clear)                                  │
 │ C. Configuration & Settings                                 │
 │ H. Help & Information                                       │
 │ Q. Exit                                                     │
@@ -271,7 +274,9 @@ class CobraScanner:
         # Show current proxy status
         proxy_count = self.proxy_manager.get_count()
         if proxy_count > 0:
-            print(f"{Colors.OKGREEN}[✓] Currently loaded: {proxy_count} proxies{Colors.ENDC}\n")
+            print(
+                f"{Colors.OKGREEN}[✓] Currently loaded: {proxy_count} proxies{Colors.ENDC}\n"
+            )
 
         print(f"{Colors.OKBLUE}Options:{Colors.ENDC}")
         print("┌────────────────────────────────────────────────────────────┐")
@@ -502,6 +507,162 @@ Each module has its own menu with specific scan options.
         print(help_text)
         input(f"\n{Colors.WARNING}Press Enter to continue...{Colors.ENDC}")
 
+    def results_menu(self):
+        """View or clear persistent JSON results."""
+        import json, os
+
+        clear_screen()
+        self.print_banner()
+
+        print(f"\n{Colors.HEADER}═══ Results Manager ═══{Colors.ENDC}\n")
+        output_file = self.config.get("output_file", "cobra_scan_results.json")
+        print(f"{Colors.OKCYAN}Current results file:{Colors.ENDC} {output_file}\n")
+
+        # Load current results
+        results = []
+        try:
+            if os.path.exists(output_file):
+                with open(output_file, "r") as f:
+                    results = json.load(f)
+            if not isinstance(results, list):
+                results = [results]
+        except Exception:
+            results = []
+
+        print(f"{Colors.OKGREEN}Entries:{Colors.ENDC} {len(results)}\n")
+        print(f"{Colors.OKBLUE}Options:{Colors.ENDC}")
+        print("┌────────────────────────────────────────────────────────────┐")
+        print("│ 1. View Summary                                            │")
+        print("│ 2. Clear All Results                                       │")
+        print("│ 3. Generate HTML Security Report                           │")
+        print("│ 4. Host Reports via Flask (static server)                  │")
+        print("│ 0. Back to Main Menu                                       │")
+        print("└────────────────────────────────────────────────────────────┘\n")
+
+        choice = self.get_input("Select option: ", False)
+        if choice == "1":
+            self._view_results_summary(results)
+        elif choice == "2":
+            self._clear_results_file(output_file)
+        elif choice == "3":
+            self._generate_html_report(results)
+        elif choice == "4":
+            self._host_reports_server()
+        # any other goes back
+
+    def _view_results_summary(self, results):
+        """Show a concise summary of saved results."""
+        import pprint
+
+        if not results:
+            print(f"\n{Colors.WARNING}[!] No results saved yet{Colors.ENDC}")
+            input(f"\n{Colors.WARNING}Press Enter to continue...{Colors.ENDC}")
+            return
+        print(f"\n{Colors.OKCYAN}Showing up to 5 recent entries:{Colors.ENDC}\n")
+        for i, entry in enumerate(results[-5:], 1):
+            # Print minimal info
+            if isinstance(entry, dict):
+                scan_info = entry.get("scan_info") or {}
+                if scan_info:
+                    print(
+                        f"[{i}] {scan_info.get('hostname', scan_info.get('url', 'N/A'))} - {scan_info.get('proxy_mode', 'N/A')} ({scan_info.get('proxy_used', 'N/A')})"
+                    )
+                else:
+                    label = entry.get("target", entry.get("domain", "N/A"))
+                    stype = entry.get("scan_type", "N/A")
+                    proxies = entry.get("proxies_used") or entry.get("proxy_used")
+                    if isinstance(proxies, list):
+                        proxies = ",".join(proxies[:3]) + (
+                            "..." if len(proxies) > 3 else ""
+                        )
+                    print(
+                        f"[{i}] {label} - {stype} {('[' + str(proxies) + ']') if proxies else ''}"
+                    )
+            else:
+                pprint.pprint(entry)
+        input(f"\n{Colors.WARNING}Press Enter to continue...{Colors.ENDC}")
+
+    def _clear_results_file(self, output_file):
+        """Clear the results JSON file (reset to empty list)."""
+        import json
+
+        confirm = self.get_input(
+            "This will delete all saved results. Confirm? (y/N): ", False
+        )
+        if confirm and confirm.lower() == "y":
+            try:
+                with open(output_file, "w") as f:
+                    json.dump([], f, indent=2)
+                print(
+                    f"{Colors.OKGREEN}[✓] Results cleared: {output_file}{Colors.ENDC}"
+                )
+            except Exception as e:
+                print(f"{Colors.FAIL}[✗] Failed to clear: {str(e)}{Colors.ENDC}")
+            input(f"\n{Colors.WARNING}Press Enter to continue...{Colors.ENDC}")
+        else:
+            print(f"{Colors.OKCYAN}Cancelled{Colors.ENDC}")
+            input(f"\n{Colors.WARNING}Press Enter to continue...{Colors.ENDC}")
+
+    def _generate_html_report(self, results):
+        """Generate stylized HTML reports grouped by target."""
+        if not results:
+            print(f"\n{Colors.WARNING}[!] No results to include in report{Colors.ENDC}")
+            input(f"\n{Colors.WARNING}Press Enter to continue...{Colors.ENDC}")
+            return
+
+        try:
+            output = generate_html_report(results)
+            print(f"\n{Colors.OKGREEN}[✓] Reports generated in: reports/{Colors.ENDC}")
+            print(f"{Colors.OKCYAN}    Index: {output}{Colors.ENDC}")
+
+            # Count unique targets
+            targets = set()
+            for entry in results:
+                si = entry.get("scan_info") or {}
+                t = (
+                    si.get("hostname")
+                    or si.get("url")
+                    or entry.get("target")
+                    or entry.get("domain")
+                )
+                if t:
+                    targets.add(t)
+            print(
+                f"{Colors.OKCYAN}    Generated {len(targets)} target report(s){Colors.ENDC}"
+            )
+        except Exception as e:
+            print(
+                f"\n{Colors.FAIL}[✗] Failed to generate report: {str(e)}{Colors.ENDC}"
+            )
+
+        input(f"\n{Colors.WARNING}Press Enter to continue...{Colors.ENDC}")
+
+    def _host_reports_server(self):
+        """Run a lightweight Flask server to host generated reports."""
+        from pathlib import Path
+
+        report_dir = Path("reports")
+        report_dir.mkdir(parents=True, exist_ok=True)
+
+        port_input = self.get_input("Enter port to serve on [5000]: ", False)
+        try:
+            port = int(port_input) if port_input else 5000
+        except ValueError:
+            port = 5000
+
+        host = self.get_input("Enter bind address [0.0.0.0]: ", False) or "0.0.0.0"
+
+        print(f"\n{Colors.OKBLUE}Starting report server...{Colors.ENDC}")
+
+        try:
+            serve_reports(str(report_dir), host=host, port=port)
+        except KeyboardInterrupt:
+            print(f"\n{Colors.WARNING}Server stopped.{Colors.ENDC}")
+        except Exception as e:
+            print(f"\n{Colors.FAIL}[✗] Server error: {str(e)}{Colors.ENDC}")
+
+        input(f"\n{Colors.WARNING}Press Enter to continue...{Colors.ENDC}")
+
     def run(self):
         """Main interactive loop."""
         try:
@@ -519,13 +680,17 @@ Each module has its own menu with specific scan options.
                     self.load_target_menu()
                 elif choice == "P":
                     self.load_proxy_menu()
+                elif choice == "R":
+                    self.results_menu()
                 elif choice.isdigit():
                     # Load module by number
                     module_num = int(choice)
                     module_list = list(self.modules.values())
                     if 1 <= module_num <= len(module_list):
                         selected_module = module_list[module_num - 1]
-                        selected_module.run(self.config, self.target_manager, self.proxy_manager)
+                        selected_module.run(
+                            self.config, self.target_manager, self.proxy_manager
+                        )
                     else:
                         print(f"{Colors.FAIL}[✗] Invalid module number{Colors. ENDC}")
                         import time

@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CobraScan - vulnerable-demo.example.com</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><span class="logo">🛡️</span> CobraScan - vulnerable-demo.example.com</h1>
+      <div class="muted">Generated: 2026-01-26 02:26:23</div>
+    </header>
+    
+        <div class="card">
+          <h2>Target Overview</h2>
+          <div class="stats-row">
+            <div class="stat-item"><span class="stat-value">5</span><span class="stat-label">Total Scans</span></div>
+            <div class="stat-item"><span class="stat-value">1</span><span class="stat-label">Web Analysis</span></div>
+            <div class="stat-item"><span class="stat-value">2</span><span class="stat-label">Path Scans</span></div>
+            <div class="stat-item"><span class="stat-value">1</span><span class="stat-label">Subdomain Scans</span></div>
+            <div class="stat-item"><span class="stat-value">1</span><span class="stat-label">Vuln Scans</span></div>
+          </div>
+          <div class="info-item"><strong>Target</strong><span>vulnerable-demo.example.com</span></div>
+        </div>
+        <section class="card">
+      <h2><span class="icon">🌐</span> Web Analysis</h2>
+      <div class="stats-row">
+        <div class="stat-item"><span class="stat-value">200</span><span class="stat-label">Status</span></div>
+        <div class="stat-item"><span class="stat-value">847ms</span><span class="stat-label">Response</span></div>
+        <div class="stat-item"><span class="stat-value">24.0KB</span><span class="stat-label">Size</span></div>
+        <div class="stat-item"><span class="stat-value">6</span><span class="stat-label">Open Ports</span></div>
+      </div>
+      <div class="grid">
+        <div class="info-item"><strong>Scanned</strong><span>2026-01-26T14:28:46.855101</span></div>
+        <div class="info-item"><strong>Proxy</strong><span>45.67.89.123:8080</span></div>
+      </div>
+      <div class="alert alert-warning"><strong>⚠️ Security Header Issues:</strong><div class="vuln-list"><span class="vuln-item">Missing Content-Security-Policy</span><span class="vuln-item">Missing Strict-Transport-Security</span><span class="vuln-item">Missing X-Frame-Options</span><span class="vuln-item">Missing X-Content-Type-Options</span></div></div>
+      <h3 class="section-ports">Open Ports (6)</h3><div class="port-grid"><div class="port-item"><div class="port-num">21</div><div class="port-service">FTP</div></div><div class="port-item"><div class="port-num">22</div><div class="port-service">SSH</div></div><div class="port-item"><div class="port-num">80</div><div class="port-service">HTTP</div></div><div class="port-item"><div class="port-num">443</div><div class="port-service">HTTPS</div></div><div class="port-item"><div class="port-num">3306</div><div class="port-service">MySQL</div></div><div class="port-item"><div class="port-num">8080</div><div class="port-service">HTTP-ALT</div></div></div>
+      <h3 class="section-ssl">SSL/TLS Certificate</h3>
+        <div class="grid">
+          <div class="info-item"><strong>Status</strong><span>✅ Valid</span></div>
+          <div class="info-item"><strong>Issuer</strong><span>Let's Encrypt</span></div>
+          <div class="info-item"><strong>Expires</strong><span>2026-02-07T23:59:59 (12 days)</span></div>
+          <div class="info-item"><strong>TLS Version</strong><span>TLSv1.0</span></div>
+        </div>
+      <h3 class="section-dns">DNS Records</h3>
+        <div class="grid grid-3">
+          <div class="info-item"><strong>A Records</strong><span>192.0.2.45, 192.0.2.46</span></div>
+          <div class="info-item"><strong>MX Records</strong><span>mail.vulnerable-demo.example.com</span></div>
+          <div class="info-item"><strong>NS Records</strong><span>ns1.example.com., ns2.example.com.</span></div>
+        </div>
+      <h3>IP Information</h3>
+        <div class="grid">
+          <div class="info-item"><strong>IP Address</strong><span>192.0.2.45</span></div>
+          <div class="info-item"><strong>Reverse DNS</strong><span>server1.vulnerable-demo.example.com</span></div>
+          <div class="info-item"><strong>Location</strong><span>San Francisco, United States</span></div>
+          <div class="info-item"><strong>ISP</strong><span>Example Hosting Inc.</span></div>
+        </div>
+      <h3 class="section-tech">Detected Technologies</h3><ul><li><strong>Backend:</strong> <code>PHP</code></li><li><strong>CMS:</strong> <code>WordPress</code></li><li><strong>JavaScript:</strong> <code>jquery, underscore</code></li><li><strong>CSS:</strong> <code>bootstrap</code></li></ul>
+      <h3>Content Analysis</h3>
+        <div class="grid">
+          <div class="info-item"><strong>Page Title</strong><span>Welcome - Vulnerable Demo Site</span></div>
+          <div class="info-item"><strong>Word Count</strong><span>1842</span></div>
+          <div class="info-item"><strong>Emails Found</strong><span>admin@vulnerable-demo.example.com, support@vulnerable-demo.example.com</span></div>
+          <div class="info-item"><strong>Phone Numbers</strong><span>1-800-555-0199</span></div>
+        </div>
+    </section><section class="card">
+      <h2><span class="icon">📂</span> Sensitive Path Finder</h2>
+      <div class="stats-row">
+        <div class="stat-item"><span class="stat-value">12</span><span class="stat-label">Found</span></div>
+        <div class="stat-item"><span class="stat-value">70</span><span class="stat-label">Checked</span></div>
+      </div>
+      <div class="grid">
+        <div class="info-item"><strong>Scanned</strong><span>2026-01-26T14:26:45.789012</span></div>
+        <div class="info-item"><strong>Proxy</strong><span>45.67.89.123:8080</span></div>
+      </div>
+      <table>
+      <thead><tr><th>Path</th><th>Status</th><th>Size</th><th>Type</th></tr></thead>
+      <tbody><tr>
+              <td><code>/.git/config</code></td>
+              <td><span class="badge badge-success">200</span></td>
+              <td>284</td>
+              <td>text/plain</td>
+            </tr><tr>
+              <td><code>/.git/HEAD</code></td>
+              <td><span class="badge badge-success">200</span></td>
+              <td>23</td>
+              <td>text/plain</td>
+            </tr><tr>
+              <td><code>/.env</code></td>
+              <td><span class="badge badge-success">200</span></td>
+              <td>1247</td>
+              <td>text/plain</td>
+            </tr><tr>
+              <td><code>/wp-config.php.bak</code></td>
+              <td><span class="badge badge-success">200</span></td>
+              <td>3842</td>
+              <td>text/plain</td>
+            </tr><tr>
+              <td><code>/phpinfo.php</code></td>
+              <td><span class="badge badge-success">200</span></td>
+              <td>78542</td>
+              <td>text/html</td>
+            </tr><tr>
+              <td><code>/debug.log</code></td>
+              <td><span class="badge badge-success">200</span></td>
+              <td>245891</td>
+              <td>text/plain</td>
+            </tr><tr>
+              <td><code>/backup.sql</code></td>
+              <td><span class="badge badge-success">200</span></td>
+              <td>15728640</td>
+              <td>application/octet-stream</td>
+            </tr><tr>
+              <td><code>/.htaccess</code></td>
+              <td><span class="badge badge-success">200</span></td>
+              <td>892</td>
+              <td>text/plain</td>
+            </tr><tr>
+              <td><code>/robots.txt</code></td>
+              <td><span class="badge badge-success">200</span></td>
+              <td>156</td>
+              <td>text/plain</td>
+            </tr><tr>
+              <td><code>/sitemap.xml</code></td>
+              <td><span class="badge badge-success">200</span></td>
+              <td>4521</td>
+              <td>application/xml</td>
+            </tr><tr>
+              <td><code>/crossdomain.xml</code></td>
+              <td><span class="badge badge-success">200</span></td>
+              <td>312</td>
+              <td>application/xml</td>
+            </tr><tr>
+              <td><code>/.DS_Store</code></td>
+              <td><span class="badge badge-success">200</span></td>
+              <td>8196</td>
+              <td>application/octet-stream</td>
+            </tr></tbody>
+    </table>
+    </section><section class="card">
+      <h2><span class="icon">📂</span> Sensitive Path Finder</h2>
+      <div class="stats-row">
+        <div class="stat-item"><span class="stat-value">8</span><span class="stat-label">Found</span></div>
+        <div class="stat-item"><span class="stat-value">40</span><span class="stat-label">Checked</span></div>
+      </div>
+      <div class="grid">
+        <div class="info-item"><strong>Scanned</strong><span>2026-01-26T14:25:12.456789</span></div>
+        <div class="info-item"><strong>Proxy</strong><span>45.67.89.123:8080, 98.76.54.32:3128</span></div>
+      </div>
+      <table>
+      <thead><tr><th>Path</th><th>Status</th><th>Size</th><th>Type</th></tr></thead>
+      <tbody><tr>
+              <td><code>/admin</code></td>
+              <td><span class="badge badge-warning">302</span></td>
+              <td>0</td>
+              <td>text/html</td>
+            </tr><tr>
+              <td><code>/wp-admin</code></td>
+              <td><span class="badge badge-warning">302</span></td>
+              <td>0</td>
+              <td>text/html</td>
+            </tr><tr>
+              <td><code>/wp-login.php</code></td>
+              <td><span class="badge badge-success">200</span></td>
+              <td>4521</td>
+              <td>text/html</td>
+            </tr><tr>
+              <td><code>/administrator</code></td>
+              <td><span class="badge badge-success">200</span></td>
+              <td>2847</td>
+              <td>text/html</td>
+            </tr><tr>
+              <td><code>/phpmyadmin</code></td>
+              <td><span class="badge badge-success">200</span></td>
+              <td>8924</td>
+              <td>text/html</td>
+            </tr><tr>
+              <td><code>/cpanel</code></td>
+              <td><span class="badge badge-warning">302</span></td>
+              <td>0</td>
+              <td>text/html</td>
+            </tr><tr>
+              <td><code>/login</code></td>
+              <td><span class="badge badge-success">200</span></td>
+              <td>3241</td>
+              <td>text/html</td>
+            </tr><tr>
+              <td><code>/dashboard</code></td>
+              <td><span class="badge badge-warning">302</span></td>
+              <td>0</td>
+              <td>text/html</td>
+            </tr></tbody>
+    </table>
+    </section><section class="card">
+      <h2><span class="icon">🔍</span> Subdomain Enumeration</h2>
+      <div class="stats-row">
+        <div class="stat-item"><span class="stat-value">12</span><span class="stat-label">Subdomains</span></div>
+      </div>
+      <div class="grid">
+        <div class="info-item"><strong>Scanned</strong><span>2026-01-26T14:22:33.123456</span></div>
+        <div class="info-item"><strong>Proxy</strong><span>45.67.89.123:8080</span></div>
+      </div>
+      <div class="grid grid-3">
+          <div class="info-item"><strong>Cert Transparency</strong><span>8</span></div>
+          <div class="info-item"><strong>DNS Bruteforce</strong><span>4</span></div>
+          <div class="info-item"><strong>Zone Transfer</strong><span>Protected</span></div>
+        </div>
+      <h3>Discovered Subdomains</h3>
+      <ul><li><code>www.vulnerable-demo.example.com</code> - 192.0.2.45</li><li><code>mail.vulnerable-demo.example.com</code> - 192.0.2.47</li><li><code>ftp.vulnerable-demo.example.com</code> - 192.0.2.48</li><li><code>api.vulnerable-demo.example.com</code> - 192.0.2.50</li><li><code>dev.vulnerable-demo.example.com</code> - 192.0.2.51</li><li><code>staging.vulnerable-demo.example.com</code> - 192.0.2.52</li><li><code>test.vulnerable-demo.example.com</code> - 192.0.2.53</li><li><code>admin.vulnerable-demo.example.com</code> - 192.0.2.54</li><li><code>blog.vulnerable-demo.example.com</code> - 192.0.2.55</li><li><code>vpn.vulnerable-demo.example.com</code> - 192.0.2.56</li><li><code>portal.vulnerable-demo.example.com</code> - 192.0.2.57</li><li><code>internal.vulnerable-demo.example.com</code> - 192.0.2.58</li></ul>
+    </section><section class="card vuln-card">
+      <h2><span class="icon">🔓</span> Vulnerability Assessment</h2>
+      <div class="risk-banner critical">
+        <div class="risk-score">28</div>
+        <div class="risk-label">Total Findings</div>
+      </div>
+      <div class="stats-row severity-stats">
+        <div class="stat-item stat-critical"><span class="stat-value">6</span><span class="stat-label">Critical</span></div>
+        <div class="stat-item stat-high"><span class="stat-value">12</span><span class="stat-label">High</span></div>
+        <div class="stat-item stat-medium"><span class="stat-value">7</span><span class="stat-label">Medium</span></div>
+        <div class="stat-item stat-low"><span class="stat-value">3</span><span class="stat-label">Low</span></div>
+      </div>
+      <div class="grid">
+        <div class="info-item"><strong>Scanned</strong><span>2026-01-26T14:32:19.093496</span></div>
+        <div class="info-item"><strong>Target</strong><span>https://vulnerable-demo.example.com</span></div>
+      </div>
+      <h3>OWASP Top 10 Assessment</h3>
+      <div class="owasp-grid"><div class="owasp-item vuln-critical"><span class="owasp-id">A01</span><span class="owasp-name">Broken Access Control</span><span class="owasp-status">⚠️ 5</span></div><div class="owasp-item vuln-critical"><span class="owasp-id">A02</span><span class="owasp-name">Cryptographic Failures</span><span class="owasp-status">⚠️ 3</span></div><div class="owasp-item vuln-critical"><span class="owasp-id">A03</span><span class="owasp-name">Injection</span><span class="owasp-status">⚠️ 5</span></div><div class="owasp-item vuln-pass"><span class="owasp-id">A04</span><span class="owasp-name">Insecure Design</span><span class="owasp-status">✅ 0</span></div><div class="owasp-item vuln-critical"><span class="owasp-id">A05</span><span class="owasp-name">Security Misconfiguration</span><span class="owasp-status">⚠️ 11</span></div><div class="owasp-item vuln-critical"><span class="owasp-id">A06</span><span class="owasp-name">Vulnerable Components</span><span class="owasp-status">⚠️ 4</span></div><div class="owasp-item vuln-pass"><span class="owasp-id">A07</span><span class="owasp-name">Auth Failures</span><span class="owasp-status">✅ 0</span></div><div class="owasp-item vuln-pass"><span class="owasp-id">A08</span><span class="owasp-name">Data Integrity Failures</span><span class="owasp-status">✅ 0</span></div><div class="owasp-item vuln-pass"><span class="owasp-id">A09</span><span class="owasp-name">Logging Failures</span><span class="owasp-status">✅ 0</span></div><div class="owasp-item vuln-pass"><span class="owasp-id">A10</span><span class="owasp-name">SSRF</span><span class="owasp-status">✅ 0</span></div></div>
+      <div class="scan-details"><div class='scan-detail'><strong>Security Headers:</strong> 2 present, 5 missing</div><div class='scan-detail'><strong>Version Disclosure:</strong> 4 detected, 4 vulnerable</div><div class='scan-detail'><strong>Sensitive Files:</strong> 6 exposed / 32 checked</div></div>
+      <h3>Detailed Findings</h3>
+      <table class="findings-table">
+      <thead><tr><th>Severity</th><th>Finding</th><th>Category</th><th>OWASP</th><th>CVE</th></tr></thead>
+      <tbody><tr class="finding-row finding-critical">
+          <td><span class="badge badge-critical">CRITICAL</span></td>
+          <td>
+            <strong>Vulnerable Apache/2.4.49 Detected</strong>
+            <div class="finding-desc">Path Traversal &amp; RCE</div>
+            <div class="finding-evidence"><code>Server: Apache/2.4.49 (Ubuntu)</code></div>
+          </td>
+          <td>Vulnerable Component</td>
+          <td>A06</td>
+          <td>CVE-2021-41773</td>
+        </tr><tr class="finding-row finding-critical">
+          <td><span class="badge badge-critical">CRITICAL</span></td>
+          <td>
+            <strong>Potential SQLi in 'id' parameter</strong>
+            <div class="finding-desc">SQL error message detected, indicating potential SQL injection</div>
+            <div class="finding-evidence"><code>Parameter: id, Error pattern: SQL syntax.*MySQL</code></div>
+          </td>
+          <td>SQL Injection</td>
+          <td>A03</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-critical">
+          <td><span class="badge badge-critical">CRITICAL</span></td>
+          <td>
+            <strong>Potential SQLi in 'user' parameter</strong>
+            <div class="finding-desc">SQL error message detected, indicating potential SQL injection</div>
+            <div class="finding-evidence"><code>Parameter: user, Error pattern: Warning.*mysql_</code></div>
+          </td>
+          <td>SQL Injection</td>
+          <td>A03</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-critical">
+          <td><span class="badge badge-critical">CRITICAL</span></td>
+          <td>
+            <strong>LFI/Directory Traversal in 'file'</strong>
+            <div class="finding-desc">Application allows reading arbitrary files from the server</div>
+            <div class="finding-evidence"><code>Parameter: file, Payload: ../../../etc/passwd</code></div>
+          </td>
+          <td>Path Traversal</td>
+          <td>A01</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-critical">
+          <td><span class="badge badge-critical">CRITICAL</span></td>
+          <td>
+            <strong>LFI/Directory Traversal in 'page'</strong>
+            <div class="finding-desc">Application allows reading arbitrary files from the server</div>
+            <div class="finding-evidence"><code>Parameter: page, Payload: ....//....//....//etc/passwd</code></div>
+          </td>
+          <td>Path Traversal</td>
+          <td>A01</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-critical">
+          <td><span class="badge badge-critical">CRITICAL</span></td>
+          <td>
+            <strong>LFI/Directory Traversal in 'template'</strong>
+            <div class="finding-desc">Application allows reading arbitrary files from the server</div>
+            <div class="finding-evidence"><code>Parameter: template, Payload: %2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd</code></div>
+          </td>
+          <td>Path Traversal</td>
+          <td>A01</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-high">
+          <td><span class="badge badge-high">HIGH</span></td>
+          <td>
+            <strong>Weak TLS Version (TLSv1.0)</strong>
+            <div class="finding-desc">Server supports deprecated TLSv1.0</div>
+            
+          </td>
+          <td>Cryptographic Failures</td>
+          <td>A02</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-high">
+          <td><span class="badge badge-high">HIGH</span></td>
+          <td>
+            <strong>Weak Cipher Suite</strong>
+            <div class="finding-desc">Server uses weak cipher: DES-CBC3-SHA</div>
+            
+          </td>
+          <td>Cryptographic Failures</td>
+          <td>A02</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-high">
+          <td><span class="badge badge-high">HIGH</span></td>
+          <td>
+            <strong>Vulnerable PHP/7.2 Detected</strong>
+            <div class="finding-desc">PHP 7.2 EOL - Multiple CVEs</div>
+            <div class="finding-evidence"><code>X-Powered-By: PHP/7.2.34</code></div>
+          </td>
+          <td>Vulnerable Component</td>
+          <td>A06</td>
+          <td>Multiple</td>
+        </tr><tr class="finding-row finding-high">
+          <td><span class="badge badge-high">HIGH</span></td>
+          <td>
+            <strong>Vulnerable WordPress 5.0.1</strong>
+            <div class="finding-desc">RCE via Media Upload</div>
+            <div class="finding-evidence"><code>Meta Generator: WordPress 5.0.1</code></div>
+          </td>
+          <td>Vulnerable Component</td>
+          <td>A06</td>
+          <td>CVE-2019-8942</td>
+        </tr><tr class="finding-row finding-high">
+          <td><span class="badge badge-high">HIGH</span></td>
+          <td>
+            <strong>Missing Content-Security-Policy</strong>
+            <div class="finding-desc">Prevents XSS and data injection attacks</div>
+            
+          </td>
+          <td>Security Headers</td>
+          <td>A05</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-high">
+          <td><span class="badge badge-high">HIGH</span></td>
+          <td>
+            <strong>Missing Strict-Transport-Security</strong>
+            <div class="finding-desc">Enforces HTTPS connections</div>
+            
+          </td>
+          <td>Security Headers</td>
+          <td>A05</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-high">
+          <td><span class="badge badge-high">HIGH</span></td>
+          <td>
+            <strong>Reflected XSS in 'search' parameter</strong>
+            <div class="finding-desc">User input is reflected in the response without proper encoding</div>
+            <div class="finding-evidence"><code>Parameter: search, Payload: &lt;script&gt;alert(1)&lt;/script&gt;</code></div>
+          </td>
+          <td>Cross-Site Scripting</td>
+          <td>A03</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-high">
+          <td><span class="badge badge-high">HIGH</span></td>
+          <td>
+            <strong>Reflected XSS in 'q' parameter</strong>
+            <div class="finding-desc">User input is reflected in the response without proper encoding</div>
+            <div class="finding-evidence"><code>Parameter: q, Payload: &lt;img src=x onerror=alert(1)&gt;</code></div>
+          </td>
+          <td>Cross-Site Scripting</td>
+          <td>A03</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-high">
+          <td><span class="badge badge-high">HIGH</span></td>
+          <td>
+            <strong>Reflected XSS in 'name' parameter</strong>
+            <div class="finding-desc">User input is reflected in the response without proper encoding</div>
+            <div class="finding-evidence"><code>Parameter: name, Payload: '"-alert(1)-'</code></div>
+          </td>
+          <td>Cross-Site Scripting</td>
+          <td>A03</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-high">
+          <td><span class="badge badge-high">HIGH</span></td>
+          <td>
+            <strong>Git repository exposed</strong>
+            <div class="finding-desc">Sensitive file accessible at /.git/config</div>
+            <div class="finding-evidence"><code>URL: https://vulnerable-demo.example.com/.git/config, Size: 284 bytes</code></div>
+          </td>
+          <td>Sensitive File Exposure</td>
+          <td>A05</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-high">
+          <td><span class="badge badge-high">HIGH</span></td>
+          <td>
+            <strong>Environment file exposed</strong>
+            <div class="finding-desc">Sensitive file accessible at /.env</div>
+            <div class="finding-evidence"><code>URL: https://vulnerable-demo.example.com/.env, Size: 1247 bytes</code></div>
+          </td>
+          <td>Sensitive File Exposure</td>
+          <td>A05</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-high">
+          <td><span class="badge badge-high">HIGH</span></td>
+          <td>
+            <strong>WordPress config backup</strong>
+            <div class="finding-desc">Sensitive file accessible at /wp-config.php.bak</div>
+            <div class="finding-evidence"><code>URL: https://vulnerable-demo.example.com/wp-config.php.bak, Size: 3842 bytes</code></div>
+          </td>
+          <td>Sensitive File Exposure</td>
+          <td>A05</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-high">
+          <td><span class="badge badge-high">HIGH</span></td>
+          <td>
+            <strong>Database backup exposed</strong>
+            <div class="finding-desc">Sensitive file accessible at /backup.sql</div>
+            <div class="finding-evidence"><code>URL: https://vulnerable-demo.example.com/backup.sql, Size: 15728640 bytes</code></div>
+          </td>
+          <td>Sensitive File Exposure</td>
+          <td>A05</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-high">
+          <td><span class="badge badge-high">HIGH</span></td>
+          <td>
+            <strong>CORS Wildcard with Credentials</strong>
+            <div class="finding-desc">CORS allows any origin with credentials</div>
+            <div class="finding-evidence"><code>ACAO: *, ACAC: true</code></div>
+          </td>
+          <td>CORS Misconfiguration</td>
+          <td>A05</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-medium">
+          <td><span class="badge badge-medium">MEDIUM</span></td>
+          <td>
+            <strong>SSL Certificate Expiring Soon</strong>
+            <div class="finding-desc">Certificate expires in 12 days</div>
+            
+          </td>
+          <td>Cryptographic Failures</td>
+          <td>A02</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-medium">
+          <td><span class="badge badge-medium">MEDIUM</span></td>
+          <td>
+            <strong>Vulnerable jQuery 2.1.4</strong>
+            <div class="finding-desc">jQuery versions &lt; 3.5.0 have XSS vulnerabilities</div>
+            <div class="finding-evidence"><code>jQuery version: 2.1.4</code></div>
+          </td>
+          <td>Vulnerable Component</td>
+          <td>A06</td>
+          <td>CVE-2020-11022</td>
+        </tr><tr class="finding-row finding-medium">
+          <td><span class="badge badge-medium">MEDIUM</span></td>
+          <td>
+            <strong>Open Redirect via 'redirect' parameter</strong>
+            <div class="finding-desc">Application redirects to attacker-controlled URLs</div>
+            <div class="finding-evidence"><code>Parameter: redirect, Redirects to: //evil.com</code></div>
+          </td>
+          <td>Open Redirect</td>
+          <td>A01</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-medium">
+          <td><span class="badge badge-medium">MEDIUM</span></td>
+          <td>
+            <strong>Open Redirect via 'next' parameter</strong>
+            <div class="finding-desc">Application redirects to attacker-controlled URLs</div>
+            <div class="finding-evidence"><code>Parameter: next, Redirects to: https://evil.com</code></div>
+          </td>
+          <td>Open Redirect</td>
+          <td>A01</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-medium">
+          <td><span class="badge badge-medium">MEDIUM</span></td>
+          <td>
+            <strong>Missing X-Frame-Options</strong>
+            <div class="finding-desc">Prevents clickjacking attacks</div>
+            
+          </td>
+          <td>Security Headers</td>
+          <td>A05</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-medium">
+          <td><span class="badge badge-medium">MEDIUM</span></td>
+          <td>
+            <strong>PHP info page exposed</strong>
+            <div class="finding-desc">Sensitive file accessible at /phpinfo.php</div>
+            <div class="finding-evidence"><code>URL: https://vulnerable-demo.example.com/phpinfo.php, Size: 78542 bytes</code></div>
+          </td>
+          <td>Sensitive File Exposure</td>
+          <td>A05</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-low">
+          <td><span class="badge badge-low">LOW</span></td>
+          <td>
+            <strong>Server Header Exposes Server Info</strong>
+            <div class="finding-desc">The Server header reveals server technology information</div>
+            <div class="finding-evidence"><code>Server: Apache/2.4.49 (Ubuntu)</code></div>
+          </td>
+          <td>Information Disclosure</td>
+          <td>A05</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-low">
+          <td><span class="badge badge-low">LOW</span></td>
+          <td>
+            <strong>X-Powered-By Header Exposes Server Info</strong>
+            <div class="finding-desc">The X-Powered-By header reveals server technology information</div>
+            <div class="finding-evidence"><code>X-Powered-By: PHP/7.2.34</code></div>
+          </td>
+          <td>Information Disclosure</td>
+          <td>A05</td>
+          <td>-</td>
+        </tr></tbody>
+    </table>
+    </section>
+        
+    <footer>
+      <p>Report generated by <strong>CobraScan</strong></p>
+      <p class="muted">Security Assessment Report</p>
+    </footer>
+  </div>
+</body>
+</html>

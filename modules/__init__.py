@@ -3,4 +3,14 @@
 CobraScan Modules Package
 """
 
-# This file makes the modules directory a Python package
+from .web_analyzer import WebAnalyzerModule
+from .path_finder import PathFinderModule
+from .sub_domain import SubDomainModule
+from .vuln_scanner import VulnerabilityScannerModule
+
+__all__ = [
+    "WebAnalyzerModule",
+    "PathFinderModule",
+    "SubDomainModule",
+    "VulnerabilityScannerModule",
+]

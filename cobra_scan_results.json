@@ -1,0 +1,1029 @@
+[
+  {
+    "target": "https://vulnerable-demo.example.com",
+    "hostname": "vulnerable-demo.example.com",
+    "scan_timestamp": "2026-01-26T14:32:19.093496",
+    "scans": {
+      "security_headers": {
+        "headers_checked": 7,
+        "missing": [
+          {
+            "header": "Content-Security-Policy",
+            "severity": "HIGH",
+            "description": "Prevents XSS and data injection attacks"
+          },
+          {
+            "header": "Strict-Transport-Security",
+            "severity": "HIGH",
+            "description": "Enforces HTTPS connections"
+          },
+          {
+            "header": "X-Frame-Options",
+            "severity": "MEDIUM",
+            "description": "Prevents clickjacking attacks"
+          },
+          {
+            "header": "X-Content-Type-Options",
+            "severity": "LOW",
+            "description": "Prevents MIME type sniffing"
+          },
+          {
+            "header": "Permissions-Policy",
+            "severity": "LOW",
+            "description": "Controls browser feature access"
+          }
+        ],
+        "present": [
+          {
+            "header": "X-XSS-Protection",
+            "value": "0"
+          },
+          {
+            "header": "Referrer-Policy",
+            "value": "unsafe-url"
+          }
+        ],
+        "issues": [
+          {
+            "header": "Server",
+            "value": "Apache/2.4.49 (Ubuntu)",
+            "issue": "Information Disclosure"
+          },
+          {
+            "header": "X-Powered-By",
+            "value": "PHP/7.2.34",
+            "issue": "Information Disclosure"
+          }
+        ]
+      },
+      "version_disclosure": {
+        "versions_found": [
+          {
+            "source": "Header: Server",
+            "value": "Apache/2.4.49 (Ubuntu)"
+          },
+          {
+            "source": "Header: X-Powered-By",
+            "value": "PHP/7.2.34"
+          },
+          {
+            "source": "JavaScript",
+            "value": "jQuery 2.1.4"
+          },
+          {
+            "source": "Meta Generator",
+            "value": "WordPress 5.0.1"
+          }
+        ],
+        "vulnerabilities": [
+          {
+            "component": "Apache/2.4.49",
+            "cve": "CVE-2021-41773",
+            "severity": "CRITICAL",
+            "description": "Path Traversal & RCE"
+          },
+          {
+            "component": "PHP/7.2.34",
+            "cve": "Multiple",
+            "severity": "HIGH",
+            "description": "PHP 7.2 EOL - Multiple CVEs"
+          },
+          {
+            "component": "jQuery 2.1.4",
+            "cve": "CVE-2020-11022",
+            "severity": "MEDIUM",
+            "description": "XSS vulnerability in jQuery"
+          },
+          {
+            "component": "WordPress 5.0.1",
+            "cve": "CVE-2019-8942",
+            "severity": "HIGH",
+            "description": "RCE via Media Upload"
+          }
+        ]
+      },
+      "ssl_tls": {
+        "ssl_enabled": true,
+        "issues": [
+          {
+            "issue": "Weak TLS version: TLSv1.0",
+            "severity": "HIGH"
+          },
+          {
+            "issue": "Weak cipher: DES-CBC3-SHA",
+            "severity": "HIGH"
+          }
+        ],
+        "certificate": {
+          "subject": {
+            "commonName": "vulnerable-demo.example.com"
+          },
+          "issuer": {
+            "countryName": "US",
+            "organizationName": "Let's Encrypt",
+            "commonName": "R3"
+          },
+          "version": "TLSv1.0",
+          "cipher": "DES-CBC3-SHA",
+          "days_until_expiry": 12
+        }
+      },
+      "sensitive_files": {
+        "files_checked": 32,
+        "exposed": [
+          {
+            "path": "/.git/config",
+            "description": "Git repository exposed",
+            "size": 284,
+            "severity": "HIGH"
+          },
+          {
+            "path": "/.env",
+            "description": "Environment file exposed",
+            "size": 1247,
+            "severity": "HIGH"
+          },
+          {
+            "path": "/wp-config.php.bak",
+            "description": "WordPress config backup",
+            "size": 3842,
+            "severity": "HIGH"
+          },
+          {
+            "path": "/phpinfo.php",
+            "description": "PHP info page exposed",
+            "size": 78542,
+            "severity": "MEDIUM"
+          },
+          {
+            "path": "/debug.log",
+            "description": "Debug log exposed",
+            "size": 245891,
+            "severity": "MEDIUM"
+          },
+          {
+            "path": "/backup.sql",
+            "description": "Database backup exposed",
+            "size": 15728640,
+            "severity": "HIGH"
+          }
+        ]
+      },
+      "cors": {
+        "cors_enabled": true,
+        "misconfigured": true,
+        "details": {
+          "allowed_origin": "*",
+          "allow_credentials": "true"
+        }
+      },
+      "xss": {
+        "tests_run": 60,
+        "vulnerable_params": [
+          {
+            "parameter": "search",
+            "payload": "<script>alert(1)</script>",
+            "reflected": true
+          },
+          {
+            "parameter": "q",
+            "payload": "<img src=x onerror=alert(1)>",
+            "reflected": true
+          },
+          {
+            "parameter": "name",
+            "payload": "'\"-alert(1)-'",
+            "reflected": true
+          }
+        ],
+        "safe_params": []
+      },
+      "sqli": {
+        "tests_run": 45,
+        "potential_vulns": [],
+        "errors_found": [
+          {
+            "parameter": "id",
+            "payload": "' OR '1'='1",
+            "error_pattern": "SQL syntax.*MySQL"
+          },
+          {
+            "parameter": "user",
+            "payload": "1' ORDER BY 10--",
+            "error_pattern": "Warning.*mysql_"
+          },
+          {
+            "parameter": "cat",
+            "payload": "1 UNION SELECT NULL--",
+            "error_pattern": "MySqlException"
+          }
+        ]
+      },
+      "lfi": {
+        "tests_run": 40,
+        "vulnerabilities": [
+          {
+            "parameter": "file",
+            "payload": "../../../etc/passwd",
+            "evidence": "root:x:0:0"
+          },
+          {
+            "parameter": "page",
+            "payload": "....//....//....//etc/passwd",
+            "evidence": "root:x:0:0"
+          },
+          {
+            "parameter": "template",
+            "payload": "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd",
+            "evidence": "root:x:0:0"
+          }
+        ]
+      },
+      "open_redirect": {
+        "tests_run": 40,
+        "vulnerabilities": [
+          {
+            "parameter": "redirect",
+            "payload": "//evil.com",
+            "redirect_location": "//evil.com"
+          },
+          {
+            "parameter": "next",
+            "payload": "https://evil.com",
+            "redirect_location": "https://evil.com"
+          }
+        ]
+      }
+    },
+    "summary": {
+      "total_findings": 28,
+      "by_severity": {
+        "CRITICAL": 6,
+        "HIGH": 12,
+        "MEDIUM": 7,
+        "LOW": 3,
+        "INFO": 0
+      },
+      "critical_high": 18
+    },
+    "findings": [
+      {
+        "category": "Vulnerable Component",
+        "title": "Vulnerable Apache/2.4.49 Detected",
+        "severity": "CRITICAL",
+        "description": "Path Traversal & RCE",
+        "evidence": "Server: Apache/2.4.49 (Ubuntu)",
+        "cve": "CVE-2021-41773",
+        "owasp": "A06",
+        "remediation": "Update to the latest patched version",
+        "timestamp": "2026-01-26T14:32:20.104487"
+      },
+      {
+        "category": "SQL Injection",
+        "title": "Potential SQLi in 'id' parameter",
+        "severity": "CRITICAL",
+        "description": "SQL error message detected, indicating potential SQL injection",
+        "evidence": "Parameter: id, Error pattern: SQL syntax.*MySQL",
+        "cve": "",
+        "owasp": "A03",
+        "remediation": "Use parameterized queries/prepared statements",
+        "timestamp": "2026-01-26T14:32:35.204503"
+      },
+      {
+        "category": "SQL Injection",
+        "title": "Potential SQLi in 'user' parameter",
+        "severity": "CRITICAL",
+        "description": "SQL error message detected, indicating potential SQL injection",
+        "evidence": "Parameter: user, Error pattern: Warning.*mysql_",
+        "cve": "",
+        "owasp": "A03",
+        "remediation": "Use parameterized queries/prepared statements",
+        "timestamp": "2026-01-26T14:32:36.304507"
+      },
+      {
+        "category": "Path Traversal",
+        "title": "LFI/Directory Traversal in 'file'",
+        "severity": "CRITICAL",
+        "description": "Application allows reading arbitrary files from the server",
+        "evidence": "Parameter: file, Payload: ../../../etc/passwd",
+        "cve": "",
+        "owasp": "A01",
+        "remediation": "Validate and sanitize file paths, use allowlists",
+        "timestamp": "2026-01-26T14:32:49.442916"
+      },
+      {
+        "category": "Path Traversal",
+        "title": "LFI/Directory Traversal in 'page'",
+        "severity": "CRITICAL",
+        "description": "Application allows reading arbitrary files from the server",
+        "evidence": "Parameter: page, Payload: ....//....//....//etc/passwd",
+        "cve": "",
+        "owasp": "A01",
+        "remediation": "Validate and sanitize file paths, use allowlists",
+        "timestamp": "2026-01-26T14:32:50.651760"
+      },
+      {
+        "category": "Path Traversal",
+        "title": "LFI/Directory Traversal in 'template'",
+        "severity": "CRITICAL",
+        "description": "Application allows reading arbitrary files from the server",
+        "evidence": "Parameter: template, Payload: %2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd",
+        "cve": "",
+        "owasp": "A01",
+        "remediation": "Validate and sanitize file paths, use allowlists",
+        "timestamp": "2026-01-26T14:32:51.865357"
+      },
+      {
+        "category": "Cryptographic Failures",
+        "title": "Weak TLS Version (TLSv1.0)",
+        "severity": "HIGH",
+        "description": "Server supports deprecated TLSv1.0",
+        "evidence": "",
+        "cve": "",
+        "owasp": "A02",
+        "remediation": "Disable TLS 1.0/1.1, use TLS 1.2 or higher",
+        "timestamp": "2026-01-26T14:32:22.404487"
+      },
+      {
+        "category": "Cryptographic Failures",
+        "title": "Weak Cipher Suite",
+        "severity": "HIGH",
+        "description": "Server uses weak cipher: DES-CBC3-SHA",
+        "evidence": "",
+        "cve": "",
+        "owasp": "A02",
+        "remediation": "Configure server to use strong cipher suites",
+        "timestamp": "2026-01-26T14:32:22.504503"
+      },
+      {
+        "category": "Cryptographic Failures",
+        "title": "SSL Certificate Expiring Soon",
+        "severity": "MEDIUM",
+        "description": "Certificate expires in 12 days",
+        "evidence": "",
+        "cve": "",
+        "owasp": "A02",
+        "remediation": "Renew the SSL certificate before expiry",
+        "timestamp": "2026-01-26T14:32:22.604507"
+      },
+      {
+        "category": "Vulnerable Component",
+        "title": "Vulnerable PHP/7.2 Detected",
+        "severity": "HIGH",
+        "description": "PHP 7.2 EOL - Multiple CVEs",
+        "evidence": "X-Powered-By: PHP/7.2.34",
+        "cve": "Multiple",
+        "owasp": "A06",
+        "remediation": "Update to the latest patched version",
+        "timestamp": "2026-01-26T14:32:20.204503"
+      },
+      {
+        "category": "Vulnerable Component",
+        "title": "Vulnerable jQuery 2.1.4",
+        "severity": "MEDIUM",
+        "description": "jQuery versions < 3.5.0 have XSS vulnerabilities",
+        "evidence": "jQuery version: 2.1.4",
+        "cve": "CVE-2020-11022",
+        "owasp": "A06",
+        "remediation": "Update jQuery to version 3.5.0 or later",
+        "timestamp": "2026-01-26T14:32:20.304507"
+      },
+      {
+        "category": "Vulnerable Component",
+        "title": "Vulnerable WordPress 5.0.1",
+        "severity": "HIGH",
+        "description": "RCE via Media Upload",
+        "evidence": "Meta Generator: WordPress 5.0.1",
+        "cve": "CVE-2019-8942",
+        "owasp": "A06",
+        "remediation": "Update to the latest patched version",
+        "timestamp": "2026-01-26T14:32:20.404510"
+      },
+      {
+        "category": "Security Headers",
+        "title": "Missing Content-Security-Policy",
+        "severity": "HIGH",
+        "description": "Prevents XSS and data injection attacks",
+        "evidence": "",
+        "cve": "",
+        "owasp": "A05",
+        "remediation": "Add Content-Security-Policy header to HTTP responses",
+        "timestamp": "2026-01-26T14:32:19.404487"
+      },
+      {
+        "category": "Security Headers",
+        "title": "Missing Strict-Transport-Security",
+        "severity": "HIGH",
+        "description": "Enforces HTTPS connections",
+        "evidence": "",
+        "cve": "",
+        "owasp": "A05",
+        "remediation": "Add Strict-Transport-Security header to HTTP responses",
+        "timestamp": "2026-01-26T14:32:19.404503"
+      },
+      {
+        "category": "Cross-Site Scripting",
+        "title": "Reflected XSS in 'search' parameter",
+        "severity": "HIGH",
+        "description": "User input is reflected in the response without proper encoding",
+        "evidence": "Parameter: search, Payload: <script>alert(1)</script>",
+        "cve": "",
+        "owasp": "A03",
+        "remediation": "Implement proper input validation and output encoding",
+        "timestamp": "2026-01-26T14:32:30.404487"
+      },
+      {
+        "category": "Cross-Site Scripting",
+        "title": "Reflected XSS in 'q' parameter",
+        "severity": "HIGH",
+        "description": "User input is reflected in the response without proper encoding",
+        "evidence": "Parameter: q, Payload: <img src=x onerror=alert(1)>",
+        "cve": "",
+        "owasp": "A03",
+        "remediation": "Implement proper input validation and output encoding",
+        "timestamp": "2026-01-26T14:32:31.404503"
+      },
+      {
+        "category": "Cross-Site Scripting",
+        "title": "Reflected XSS in 'name' parameter",
+        "severity": "HIGH",
+        "description": "User input is reflected in the response without proper encoding",
+        "evidence": "Parameter: name, Payload: '\"-alert(1)-'",
+        "cve": "",
+        "owasp": "A03",
+        "remediation": "Implement proper input validation and output encoding",
+        "timestamp": "2026-01-26T14:32:32.404507"
+      },
+      {
+        "category": "Sensitive File Exposure",
+        "title": "Git repository exposed",
+        "severity": "HIGH",
+        "description": "Sensitive file accessible at /.git/config",
+        "evidence": "URL: https://vulnerable-demo.example.com/.git/config, Size: 284 bytes",
+        "cve": "",
+        "owasp": "A05",
+        "remediation": "Remove or restrict access to sensitive files",
+        "timestamp": "2026-01-26T14:32:27.131079"
+      },
+      {
+        "category": "Sensitive File Exposure",
+        "title": "Environment file exposed",
+        "severity": "HIGH",
+        "description": "Sensitive file accessible at /.env",
+        "evidence": "URL: https://vulnerable-demo.example.com/.env, Size: 1247 bytes",
+        "cve": "",
+        "owasp": "A05",
+        "remediation": "Remove or restrict access to sensitive files",
+        "timestamp": "2026-01-26T14:32:27.231085"
+      },
+      {
+        "category": "Sensitive File Exposure",
+        "title": "WordPress config backup",
+        "severity": "HIGH",
+        "description": "Sensitive file accessible at /wp-config.php.bak",
+        "evidence": "URL: https://vulnerable-demo.example.com/wp-config.php.bak, Size: 3842 bytes",
+        "cve": "",
+        "owasp": "A05",
+        "remediation": "Remove or restrict access to sensitive files",
+        "timestamp": "2026-01-26T14:32:27.331091"
+      },
+      {
+        "category": "Sensitive File Exposure",
+        "title": "Database backup exposed",
+        "severity": "HIGH",
+        "description": "Sensitive file accessible at /backup.sql",
+        "evidence": "URL: https://vulnerable-demo.example.com/backup.sql, Size: 15728640 bytes",
+        "cve": "",
+        "owasp": "A05",
+        "remediation": "Remove or restrict access to sensitive files",
+        "timestamp": "2026-01-26T14:32:27.431097"
+      },
+      {
+        "category": "CORS Misconfiguration",
+        "title": "CORS Wildcard with Credentials",
+        "severity": "HIGH",
+        "description": "CORS allows any origin with credentials",
+        "evidence": "ACAO: *, ACAC: true",
+        "cve": "",
+        "owasp": "A05",
+        "remediation": "Restrict CORS to specific trusted origins",
+        "timestamp": "2026-01-26T14:32:28.504503"
+      },
+      {
+        "category": "Open Redirect",
+        "title": "Open Redirect via 'redirect' parameter",
+        "severity": "MEDIUM",
+        "description": "Application redirects to attacker-controlled URLs",
+        "evidence": "Parameter: redirect, Redirects to: //evil.com",
+        "cve": "",
+        "owasp": "A01",
+        "remediation": "Validate redirect URLs against an allowlist",
+        "timestamp": "2026-01-26T14:32:55.404507"
+      },
+      {
+        "category": "Open Redirect",
+        "title": "Open Redirect via 'next' parameter",
+        "severity": "MEDIUM",
+        "description": "Application redirects to attacker-controlled URLs",
+        "evidence": "Parameter: next, Redirects to: https://evil.com",
+        "cve": "",
+        "owasp": "A01",
+        "remediation": "Validate redirect URLs against an allowlist",
+        "timestamp": "2026-01-26T14:32:56.504510"
+      },
+      {
+        "category": "Security Headers",
+        "title": "Missing X-Frame-Options",
+        "severity": "MEDIUM",
+        "description": "Prevents clickjacking attacks",
+        "evidence": "",
+        "cve": "",
+        "owasp": "A05",
+        "remediation": "Add X-Frame-Options header to HTTP responses",
+        "timestamp": "2026-01-26T14:32:19.504510"
+      },
+      {
+        "category": "Sensitive File Exposure",
+        "title": "PHP info page exposed",
+        "severity": "MEDIUM",
+        "description": "Sensitive file accessible at /phpinfo.php",
+        "evidence": "URL: https://vulnerable-demo.example.com/phpinfo.php, Size: 78542 bytes",
+        "cve": "",
+        "owasp": "A05",
+        "remediation": "Remove or restrict access to sensitive files",
+        "timestamp": "2026-01-26T14:32:27.531103"
+      },
+      {
+        "category": "Information Disclosure",
+        "title": "Server Header Exposes Server Info",
+        "severity": "LOW",
+        "description": "The Server header reveals server technology information",
+        "evidence": "Server: Apache/2.4.49 (Ubuntu)",
+        "cve": "",
+        "owasp": "A05",
+        "remediation": "Remove or obfuscate the Server header",
+        "timestamp": "2026-01-26T14:32:19.604513"
+      },
+      {
+        "category": "Information Disclosure",
+        "title": "X-Powered-By Header Exposes Server Info",
+        "severity": "LOW",
+        "description": "The X-Powered-By header reveals server technology information",
+        "evidence": "X-Powered-By: PHP/7.2.34",
+        "cve": "",
+        "owasp": "A05",
+        "remediation": "Remove or obfuscate the X-Powered-By header",
+        "timestamp": "2026-01-26T14:32:19.704516"
+      }
+    ],
+    "scan_type": "full_vuln_scan"
+  },
+  {
+    "scan_info": {
+      "url": "https://vulnerable-demo.example.com/",
+      "requested_url": "https://vulnerable-demo.example.com/",
+      "hostname": "vulnerable-demo.example.com",
+      "scan_timestamp": "2026-01-26T14:28:46.855101",
+      "proxy_used": "45.67.89.123:8080"
+    },
+    "http_info": {
+      "status_code": 200,
+      "reason": "OK",
+      "is_ok": true,
+      "encoding": "utf-8",
+      "apparent_encoding": "utf-8"
+    },
+    "headers": {
+      "Date": "Sun, 26 Jan 2026 14:28:46 GMT",
+      "Content-Type": "text/html; charset=utf-8",
+      "Content-Length": "24593",
+      "Connection": "keep-alive",
+      "Server": "Apache/2.4.49 (Ubuntu)",
+      "X-Powered-By": "PHP/7.2.34"
+    },
+    "performance": {
+      "response_time_ms": 847.2,
+      "content_size_bytes": 24593,
+      "content_size_kb": 24.02,
+      "headers_count": 6,
+      "gzip_enabled": false,
+      "cache_control": "Not set",
+      "compression": "None",
+      "performance_rating": "GOOD"
+    },
+    "content_analysis": {
+      "emails": [
+        "admin@vulnerable-demo.example.com",
+        "support@vulnerable-demo.example.com"
+      ],
+      "phone_numbers": [
+        "1-800-555-0199"
+      ],
+      "meta_tags": {
+        "generator": "WordPress 5.0.1"
+      },
+      "page_title": "Welcome - Vulnerable Demo Site",
+      "sensitive_paths": [
+        "/wp-admin",
+        "/wp-login.php"
+      ],
+      "word_count": 1842
+    },
+    "dns_info": {
+      "a_records": [
+        "192.0.2.45",
+        "192.0.2.46"
+      ],
+      "aaaa_records": "No AAAA records found",
+      "mx_records": [
+        "mail.vulnerable-demo.example.com"
+      ],
+      "txt_records": [
+        "\"v=spf1 include:_spf.example.com ~all\""
+      ],
+      "ns_records": [
+        "ns1.example.com.",
+        "ns2.example.com."
+      ]
+    },
+    "ip_info": {
+      "ip_address": "192.0.2.45",
+      "reverse_dns": "server1.vulnerable-demo.example.com",
+      "geolocation": {
+        "country": "United States",
+        "region": "California",
+        "city": "San Francisco",
+        "isp": "Example Hosting Inc.",
+        "org": "Example Cloud Services"
+      }
+    },
+    "ssl_info": {
+      "certificate": {
+        "issuer": {
+          "countryName": "US",
+          "organizationName": "Let's Encrypt",
+          "commonName": "R3"
+        },
+        "subject": {
+          "commonName": "vulnerable-demo.example.com"
+        },
+        "version": 3,
+        "serialNumber": "04ABC123DEF456789",
+        "notBefore": "Jan 01 00:00:00 2026 GMT",
+        "notAfter": "Feb 07 23:59:59 2026 GMT"
+      },
+      "subject_alternative_names": [
+        "vulnerable-demo.example.com",
+        "www.vulnerable-demo.example.com"
+      ],
+      "days_until_expiry": 12,
+      "expiry_date": "2026-02-07T23:59:59",
+      "cert_valid": true,
+      "cert_status": "EXPIRING SOON",
+      "tls_version": "TLSv1.0",
+      "cipher": "DES-CBC3-SHA"
+    },
+    "http_methods": {
+      "allowed_methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "HEAD",
+        "OPTIONS",
+        "TRACE"
+      ],
+      "vulnerable_methods": [
+        {
+          "method": "PUT",
+          "risk": "HIGH",
+          "description": "PUT method is enabled - potential security risk"
+        },
+        {
+          "method": "DELETE",
+          "risk": "HIGH",
+          "description": "DELETE method is enabled - potential security risk"
+        },
+        {
+          "method": "TRACE",
+          "risk": "HIGH",
+          "description": "TRACE method is enabled - potential security risk"
+        }
+      ],
+      "method_count": 7
+    },
+    "security_headers": {
+      "Content-Security-Policy": {
+        "present": false,
+        "value": null,
+        "description": "Prevents XSS attacks by controlling resource loading"
+      },
+      "Strict-Transport-Security": {
+        "present": false,
+        "value": null,
+        "description": "Enforces HTTPS connections"
+      },
+      "X-Frame-Options": {
+        "present": false,
+        "value": null,
+        "description": "Prevents clickjacking attacks"
+      },
+      "X-Content-Type-Options": {
+        "present": false,
+        "value": null,
+        "description": "Prevents MIME type sniffing"
+      },
+      "vulnerabilities": [
+        "Missing Content-Security-Policy",
+        "Missing Strict-Transport-Security",
+        "Missing X-Frame-Options",
+        "Missing X-Content-Type-Options"
+      ]
+    },
+    "open_ports": [
+      {
+        "port": 21,
+        "service": "FTP",
+        "status": "open"
+      },
+      {
+        "port": 22,
+        "service": "SSH",
+        "status": "open"
+      },
+      {
+        "port": 80,
+        "service": "HTTP",
+        "status": "open"
+      },
+      {
+        "port": 443,
+        "service": "HTTPS",
+        "status": "open"
+      },
+      {
+        "port": 3306,
+        "service": "MySQL",
+        "status": "open"
+      },
+      {
+        "port": 8080,
+        "service": "HTTP-ALT",
+        "status": "open"
+      }
+    ],
+    "technologies": {
+      "cms": "WordPress",
+      "backend": "PHP",
+      "javascript_libraries": [
+        "jquery",
+        "underscore"
+      ],
+      "css_frameworks": [
+        "bootstrap"
+      ]
+    }
+  },
+  {
+    "target": "vulnerable-demo.example.com",
+    "scan_type": "admin_paths",
+    "timestamp": "2026-01-26T14:25:12.456789",
+    "proxies_used": [
+      "45.67.89.123:8080",
+      "98.76.54.32:3128"
+    ],
+    "paths_checked": 40,
+    "paths_found": 8,
+    "found_paths": [
+      {
+        "path": "/admin",
+        "status_code": 302,
+        "content_length": 0,
+        "content_type": "text/html"
+      },
+      {
+        "path": "/wp-admin",
+        "status_code": 302,
+        "content_length": 0,
+        "content_type": "text/html"
+      },
+      {
+        "path": "/wp-login.php",
+        "status_code": 200,
+        "content_length": 4521,
+        "content_type": "text/html"
+      },
+      {
+        "path": "/administrator",
+        "status_code": 200,
+        "content_length": 2847,
+        "content_type": "text/html"
+      },
+      {
+        "path": "/phpmyadmin",
+        "status_code": 200,
+        "content_length": 8924,
+        "content_type": "text/html"
+      },
+      {
+        "path": "/cpanel",
+        "status_code": 302,
+        "content_length": 0,
+        "content_type": "text/html"
+      },
+      {
+        "path": "/login",
+        "status_code": 200,
+        "content_length": 3241,
+        "content_type": "text/html"
+      },
+      {
+        "path": "/dashboard",
+        "status_code": 302,
+        "content_length": 0,
+        "content_type": "text/html"
+      }
+    ]
+  },
+  {
+    "target": "vulnerable-demo.example.com",
+    "scan_type": "sensitive_paths",
+    "timestamp": "2026-01-26T14:26:45.789012",
+    "proxies_used": [
+      "45.67.89.123:8080"
+    ],
+    "paths_checked": 70,
+    "paths_found": 12,
+    "found_paths": [
+      {
+        "path": "/.git/config",
+        "status_code": 200,
+        "content_length": 284,
+        "content_type": "text/plain"
+      },
+      {
+        "path": "/.git/HEAD",
+        "status_code": 200,
+        "content_length": 23,
+        "content_type": "text/plain"
+      },
+      {
+        "path": "/.env",
+        "status_code": 200,
+        "content_length": 1247,
+        "content_type": "text/plain"
+      },
+      {
+        "path": "/wp-config.php.bak",
+        "status_code": 200,
+        "content_length": 3842,
+        "content_type": "text/plain"
+      },
+      {
+        "path": "/phpinfo.php",
+        "status_code": 200,
+        "content_length": 78542,
+        "content_type": "text/html"
+      },
+      {
+        "path": "/debug.log",
+        "status_code": 200,
+        "content_length": 245891,
+        "content_type": "text/plain"
+      },
+      {
+        "path": "/backup.sql",
+        "status_code": 200,
+        "content_length": 15728640,
+        "content_type": "application/octet-stream"
+      },
+      {
+        "path": "/.htaccess",
+        "status_code": 200,
+        "content_length": 892,
+        "content_type": "text/plain"
+      },
+      {
+        "path": "/robots.txt",
+        "status_code": 200,
+        "content_length": 156,
+        "content_type": "text/plain"
+      },
+      {
+        "path": "/sitemap.xml",
+        "status_code": 200,
+        "content_length": 4521,
+        "content_type": "application/xml"
+      },
+      {
+        "path": "/crossdomain.xml",
+        "status_code": 200,
+        "content_length": 312,
+        "content_type": "application/xml"
+      },
+      {
+        "path": "/.DS_Store",
+        "status_code": 200,
+        "content_length": 8196,
+        "content_type": "application/octet-stream"
+      }
+    ]
+  },
+  {
+    "target": "vulnerable-demo.example.com",
+    "scan_type": "full_enumeration",
+    "timestamp": "2026-01-26T14:22:33.123456",
+    "proxy_used": "45.67.89.123:8080",
+    "all_subdomains": [
+      {
+        "subdomain": "www",
+        "full_domain": "www.vulnerable-demo.example.com",
+        "ip_addresses": [
+          "192.0.2.45"
+        ]
+      },
+      {
+        "subdomain": "mail",
+        "full_domain": "mail.vulnerable-demo.example.com",
+        "ip_addresses": [
+          "192.0.2.47"
+        ]
+      },
+      {
+        "subdomain": "ftp",
+        "full_domain": "ftp.vulnerable-demo.example.com",
+        "ip_addresses": [
+          "192.0.2.48"
+        ]
+      },
+      {
+        "subdomain": "api",
+        "full_domain": "api.vulnerable-demo.example.com",
+        "ip_addresses": [
+          "192.0.2.50"
+        ]
+      },
+      {
+        "subdomain": "dev",
+        "full_domain": "dev.vulnerable-demo.example.com",
+        "ip_addresses": [
+          "192.0.2.51"
+        ]
+      },
+      {
+        "subdomain": "staging",
+        "full_domain": "staging.vulnerable-demo.example.com",
+        "ip_addresses": [
+          "192.0.2.52"
+        ]
+      },
+      {
+        "subdomain": "test",
+        "full_domain": "test.vulnerable-demo.example.com",
+        "ip_addresses": [
+          "192.0.2.53"
+        ]
+      },
+      {
+        "subdomain": "admin",
+        "full_domain": "admin.vulnerable-demo.example.com",
+        "ip_addresses": [
+          "192.0.2.54"
+        ]
+      },
+      {
+        "subdomain": "blog",
+        "full_domain": "blog.vulnerable-demo.example.com",
+        "ip_addresses": [
+          "192.0.2.55"
+        ]
+      },
+      {
+        "subdomain": "vpn",
+        "full_domain": "vpn.vulnerable-demo.example.com",
+        "ip_addresses": [
+          "192.0.2.56"
+        ]
+      },
+      {
+        "subdomain": "portal",
+        "full_domain": "portal.vulnerable-demo.example.com",
+        "ip_addresses": [
+          "192.0.2.57"
+        ]
+      },
+      {
+        "subdomain": "internal",
+        "full_domain": "internal.vulnerable-demo.example.com",
+        "ip_addresses": [
+          "192.0.2.58"
+        ]
+      }
+    ],
+    "scan_results": {
+      "cert_transparency": 8,
+      "dns_bruteforce": 4,
+      "zone_transfer_vulnerable": false
+    }
+  }
+]

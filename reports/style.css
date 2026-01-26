@@ -1,0 +1,774 @@
+/*
+ * CobraScan Security Report - Global Stylesheet
+ * Dark theme professional pentest report styling
+ */
+
+:root {
+    --bg-primary: #0b0e11;
+    --bg-secondary: #11151a;
+    --bg-tertiary: #161b22;
+    --border-color: #21262d;
+    --border-highlight: #30363d;
+    --text-primary: #e6edf3;
+    --text-secondary: #9da7b1;
+    --text-muted: #6e7681;
+    --accent-blue: #58a6ff;
+    --accent-green: #3fb950;
+    --accent-red: #f85149;
+    --accent-orange: #d29922;
+    --accent-purple: #a371f7;
+    --pill-bg: #1f6feb;
+    --badge-success: #238636;
+    --badge-warning: #9e6a03;
+    --badge-danger: #da3633;
+    --badge-info: #1f6feb;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px;
+}
+
+/* Header */
+header {
+    padding: 20px 0 32px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 32px;
+}
+
+header h1 {
+    margin: 0 0 8px;
+    font-size: 32px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+header h1 .logo {
+    font-size: 36px;
+}
+
+.muted {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+/* Cards */
+.card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    transition: border-color 0.2s ease;
+}
+
+.card:hover {
+    border-color: var(--border-highlight);
+}
+
+.card h2 {
+    margin: 0 0 16px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.card h2 .icon {
+    font-size: 20px;
+}
+
+.card h3 {
+    margin: 20px 0 12px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent-blue);
+}
+
+/* Grid Layout */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.grid-3 {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+/* Info Items */
+.info-item {
+    margin-bottom: 12px;
+}
+
+.info-item strong {
+    color: var(--text-secondary);
+    font-weight: 500;
+    display: block;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.info-item span,
+.info-item p {
+    color: var(--text-primary);
+    margin: 0;
+}
+
+/* Pills & Badges */
+.pill {
+    display: inline-flex;
+    align-items: center;
+    background: var(--pill-bg);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    margin-right: 8px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.badge-success {
+    background: var(--badge-success);
+    color: white;
+}
+
+.badge-warning {
+    background: var(--badge-warning);
+    color: white;
+}
+
+.badge-danger {
+    background: var(--badge-danger);
+    color: white;
+}
+
+.badge-info {
+    background: var(--badge-info);
+    color: white;
+}
+
+.badge-open {
+    background: var(--accent-green);
+    color: #0d1117;
+}
+
+/* Status Indicators */
+.status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.status::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.status-ok::before {
+    background: var(--accent-green);
+}
+
+.status-warn::before {
+    background: var(--accent-orange);
+}
+
+.status-error::before {
+    background: var(--accent-red);
+}
+
+/* Alerts */
+.alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin: 16px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.alert-warning {
+    background: rgba(210, 153, 34, 0.15);
+    border: 1px solid rgba(210, 153, 34, 0.4);
+    color: #e3b341;
+}
+
+.alert-danger {
+    background: rgba(248, 81, 73, 0.15);
+    border: 1px solid rgba(248, 81, 73, 0.4);
+    color: #f97583;
+}
+
+.alert-info {
+    background: rgba(88, 166, 255, 0.15);
+    border: 1px solid rgba(88, 166, 255, 0.4);
+    color: var(--accent-blue);
+}
+
+.alert-success {
+    background: rgba(63, 185, 80, 0.15);
+    border: 1px solid rgba(63, 185, 80, 0.4);
+    color: var(--accent-green);
+}
+
+/* Tables */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+}
+
+th,
+td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+th {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    background: var(--bg-tertiary);
+}
+
+tr:hover td {
+    background: var(--bg-tertiary);
+}
+
+/* Lists */
+ul {
+    margin: 8px 0;
+    padding-left: 0;
+    list-style: none;
+}
+
+ul li {
+    padding: 8px 12px;
+    margin: 4px 0;
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+ul li code {
+    flex: 1;
+}
+
+/* Code */
+code {
+    background: var(--bg-primary);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-family: "SF Mono", "Fira Code", Consolas, monospace;
+    font-size: 13px;
+    color: var(--accent-blue);
+}
+
+pre {
+    background: var(--bg-primary);
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 12px;
+    border: 1px solid var(--border-color);
+}
+
+/* Links */
+a {
+    color: var(--accent-blue);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: #79c0ff;
+    text-decoration: underline;
+}
+
+/* Target Cards (Index Page) */
+.target-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.target-card .target-info h2 {
+    border: none;
+    padding: 0;
+    margin: 0 0 8px;
+}
+
+.target-card .target-meta {
+    display: flex;
+    gap: 16px;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.target-card .view-btn {
+    background: var(--accent-blue);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.target-card .view-btn:hover {
+    background: #79c0ff;
+    text-decoration: none;
+}
+
+/* Section Icons */
+.section-web::before {
+    content: '🌐';
+    margin-right: 8px;
+}
+
+.section-paths::before {
+    content: '📂';
+    margin-right: 8px;
+}
+
+.section-subdomains::before {
+    content: '🔍';
+    margin-right: 8px;
+}
+
+.section-ports::before {
+    content: '🔌';
+    margin-right: 8px;
+}
+
+.section-ssl::before {
+    content: '🔒';
+    margin-right: 8px;
+}
+
+.section-headers::before {
+    content: '🛡️';
+    margin-right: 8px;
+}
+
+.section-dns::before {
+    content: '📡';
+    margin-right: 8px;
+}
+
+.section-tech::before {
+    content: '⚙️';
+    margin-right: 8px;
+}
+
+/* Stats Row */
+.stats-row {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 16px 24px;
+    background: var(--bg-tertiary);
+    border-radius: 10px;
+    min-width: 120px;
+}
+
+.stat-item .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent-blue);
+    display: block;
+}
+
+.stat-item .stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+/* Vulnerability List */
+.vuln-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.vuln-item {
+    background: rgba(248, 81, 73, 0.15);
+    border: 1px solid rgba(248, 81, 73, 0.3);
+    color: #f97583;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+/* Port Grid */
+.port-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.port-item {
+    background: var(--bg-tertiary);
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.port-item .port-num {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent-green);
+}
+
+.port-item .port-service {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+/* Footer */
+footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-muted);
+    text-align: center;
+    font-size: 13px;
+}
+
+footer p {
+    margin: 4px 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 16px;
+    }
+
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-row {
+        justify-content: center;
+    }
+
+    .target-card {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+    }
+}
+
+/* Print Styles */
+@media print {
+    body {
+        background: white;
+        color: black;
+    }
+
+    .card {
+        border: 1px solid #ddd;
+        break-inside: avoid;
+    }
+
+    a {
+        color: black;
+    }
+}
+
+/* ========================================
+   VULNERABILITY SCANNER SPECIFIC STYLES
+   ======================================== */
+
+/* Risk Banner */
+.risk-banner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.risk-banner.critical {
+    background: linear-gradient(135deg, rgba(248, 81, 73, 0.2), rgba(248, 81, 73, 0.1));
+    border: 2px solid var(--accent-red);
+}
+
+.risk-banner.high {
+    background: linear-gradient(135deg, rgba(248, 81, 73, 0.15), rgba(210, 153, 34, 0.1));
+    border: 2px solid #f97583;
+}
+
+.risk-banner.medium {
+    background: linear-gradient(135deg, rgba(210, 153, 34, 0.2), rgba(210, 153, 34, 0.1));
+    border: 2px solid var(--accent-orange);
+}
+
+.risk-banner.low {
+    background: linear-gradient(135deg, rgba(63, 185, 80, 0.15), rgba(88, 166, 255, 0.1));
+    border: 2px solid var(--accent-green);
+}
+
+.risk-score {
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.risk-label {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-secondary);
+    margin-top: 8px;
+}
+
+/* Severity Stats */
+.severity-stats .stat-item {
+    min-width: 100px;
+}
+
+.stat-critical .stat-value {
+    color: var(--accent-red) !important;
+}
+
+.stat-high .stat-value {
+    color: #f97583 !important;
+}
+
+.stat-medium .stat-value {
+    color: var(--accent-orange) !important;
+}
+
+.stat-low .stat-value {
+    color: var(--accent-blue) !important;
+}
+
+/* OWASP Grid */
+.owasp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+    margin: 16px 0;
+}
+
+.owasp-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    border-left: 4px solid var(--border-color);
+    transition: transform 0.2s ease;
+}
+
+.owasp-item:hover {
+    transform: translateX(4px);
+}
+
+.owasp-item.vuln-critical {
+    border-left-color: var(--accent-red);
+    background: rgba(248, 81, 73, 0.08);
+}
+
+.owasp-item.vuln-medium {
+    border-left-color: var(--accent-orange);
+    background: rgba(210, 153, 34, 0.08);
+}
+
+.owasp-item.vuln-low {
+    border-left-color: var(--accent-blue);
+    background: rgba(88, 166, 255, 0.08);
+}
+
+.owasp-item.vuln-pass {
+    border-left-color: var(--accent-green);
+}
+
+.owasp-id {
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--accent-purple);
+    background: rgba(163, 113, 247, 0.15);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.owasp-name {
+    flex: 1;
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+.owasp-status {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+/* Findings Table */
+.findings-table {
+    margin-top: 16px;
+}
+
+.findings-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.finding-row {
+    transition: background 0.2s ease;
+}
+
+.finding-row.finding-critical {
+    border-left: 3px solid var(--accent-red);
+}
+
+.finding-row.finding-high {
+    border-left: 3px solid #f97583;
+}
+
+.finding-row.finding-medium {
+    border-left: 3px solid var(--accent-orange);
+}
+
+.finding-row.finding-low {
+    border-left: 3px solid var(--accent-blue);
+}
+
+.finding-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+.finding-evidence {
+    margin-top: 8px;
+    padding: 8px;
+    background: var(--bg-primary);
+    border-radius: 6px;
+}
+
+.finding-evidence code {
+    font-size: 11px;
+    word-break: break-all;
+}
+
+/* Severity Badges */
+.badge-critical {
+    background: var(--accent-red);
+    color: white;
+}
+
+.badge-high {
+    background: #f97583;
+    color: #0d1117;
+}
+
+.badge-medium {
+    background: var(--accent-orange);
+    color: #0d1117;
+}
+
+.badge-low {
+    background: var(--accent-blue);
+    color: white;
+}
+
+.badge-info {
+    background: var(--text-secondary);
+    color: var(--bg-primary);
+}
+
+/* Scan Details */
+.scan-details {
+    margin: 16px 0;
+    padding: 16px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+}
+
+.scan-detail {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 13px;
+}
+
+.scan-detail:last-child {
+    border-bottom: none;
+}
+
+/* No Vulnerabilities Message */
+.no-vulns {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--accent-green);
+    font-size: 18px;
+    background: rgba(63, 185, 80, 0.1);
+    border-radius: 12px;
+    margin: 16px 0;
+}
+
+/* Vuln Card Special Styling */
+.vuln-card {
+    border-color: var(--accent-purple);
+}
+
+.vuln-card h2 {
+    color: var(--accent-purple);
+}
