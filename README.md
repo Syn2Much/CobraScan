@@ -1,6 +1,6 @@
-# CobraScan 🐍
+# Cobra Scan 🐍
 
-*a powerful, modular reconnaissance tool designed for security professionals, ethical hackers, and system administrators. It provides a unified interface for multiple security scanning and analysis techniques through an extensible plugin architecture*
+*a powerful, modular reconnaissance tool designed for security professionals, ethical hackers, and system administrators. Perform deep Vulnerability Scans using Cobras 4 scan modules. Generate styled personalized pentest/vulnerability reports hosted on a flask web interface.
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -9,9 +9,11 @@
 ---
 
 
+
 ## ✨ Features
 
 ### Core Features
+
 - **🔌 Modular Architecture**: Plugin-based system for easy extension
 - **📊 Multiple Scan Types**: DNS, SSL, ports, headers, and more
 - **🎯 Target Management**: Single or batch target scanning
@@ -20,6 +22,7 @@
 - **📈 JSON Export**: Structured data for automation and reporting
 
 ### Web Analyzer Module (v2.0.0)
+
 - **🌐 Quick Scan**: Basic HTTP information (status, server, encoding)
 - **🔍 DNS Reconnaissance**: A, AAAA, MX, TXT, NS record analysis
 - **📍 IP Geolocation**: IP address location, ISP, reverse DNS
@@ -34,6 +37,7 @@
 - **📦 Batch Processing**: Scan multiple targets from file with timestamped results
 
 ### Sensitive Path Finder Module (v1.0.0) - NEW
+
 - **🔐 Admin/Login Paths**: Discover admin panels, login pages, phpMyAdmin, database managers
 - **📝 CMS Detection**: WordPress, Joomla, Drupal, Magento, Laravel path scanning
 - **🔌 API Endpoints**: REST, GraphQL, Swagger, OpenAPI, health checks, hidden endpoints
@@ -42,7 +46,8 @@
 - **📋 Custom Wordlists**: Support for external wordlist files
 - **📦 Batch Scanning**: Scan multiple targets with selected path categories
 
-### Subdomain Enumeration Module (v1.0.0) - NEW
+### Subdomain Enumeration Module (v1.0.0)
+
 - **🔍 DNS Bruteforce**: Quick (150+) and Deep (250+) subdomain wordlists
 - **📜 Certificate Transparency**: Query crt.sh for SSL certificate subdomains
 - **🔓 Zone Transfer (AXFR)**: Test for misconfigured DNS servers
@@ -51,11 +56,24 @@
 - **📋 Custom Wordlists**: Support for external subdomain wordlists
 - **📦 Batch Scanning**: Enumerate subdomains across multiple domains
 
+### Vulnerability Scanner Module (v1.0.0) - NEW 🔓
+
+- **📋 OWASP Top 10**: Complete coverage of OWASP Top 10 2021 categories
+- **🔍 CVE Detection**: Known vulnerable software signatures (Apache, PHP, jQuery, WordPress, etc.)
+- **💉 Injection Testing**: XSS (reflected), SQL injection, command injection, path traversal
+- **🔒 SSL/TLS Analysis**: TLS version, cipher strength, certificate expiry checks
+- **🛡️ Security Headers**: CSP, HSTS, X-Frame-Options, CORS misconfiguration
+- **📂 Sensitive Files**: .git, .env, config backups, database dumps, logs
+- **🔄 Open Redirect**: URL redirect vulnerability detection
+- **📊 Risk Scoring**: Severity-based findings with OWASP categorization
+- **📦 Batch Scanning**: Scan multiple targets with comprehensive reports
+
 ---
 
 ## 📦 Installation
 
 ### Prerequisites
+
 - Python 3.8 or higher
 - pip package manager
 
@@ -78,6 +96,7 @@ python main.py
 ## 🚀 Quick Start
 
 1. **Start CobraScan**:
+
    ```bash
    python main.py
    ```
@@ -102,19 +121,21 @@ python main.py
 
 ---
 
-
 ## 🛠️ Usage Guide
 
 ### Main Menu
+
 ```
 ┌─────────────────────────────────────────────┐
 │ Available Modules:                          │
 │ 1. Web Analyzer (v2.0.0)                    │
 │ 2. Sensitive Path Finder (v1.0.0)           │
 │ 3. Subdomain Enumeration (v1.0.0)           │
+│ 4. Vulnerability Scanner (v1.0.0)           │
 │                                             │
 │ T. Load Target (URL/IP or File)             │
 │ P. Load Proxies (HTTP/HTTPS from File)      │
+│ R. Results (View / Clear / Reports)         │
 │ C. Configuration & Settings                 │
 │ H. Help & Information                       │
 │ Q. Exit                                     │
@@ -122,6 +143,7 @@ python main.py
 ```
 
 ### Web Analyzer Scan Menu
+
 ```
 ┌─────────────────────────────────────────────┐
 │  1. Quick Scan                              │
@@ -141,6 +163,7 @@ python main.py
 ```
 
 ### Sensitive Path Finder Menu
+
 ```
 ┌─────────────────────────────────────────────┐
 │  1. Admin/Login Paths (40 paths)            │
@@ -155,6 +178,7 @@ python main.py
 ```
 
 ### Subdomain Enumeration Menu
+
 ```
 ┌─────────────────────────────────────────────┐
 │  1. Quick Enum (150 subdomains)             │
@@ -169,16 +193,31 @@ python main.py
 └─────────────────────────────────────────────┘
 ```
 
+### Vulnerability Scanner Menu
+
+```
+┌─────────────────────────────────────────────┐
+│  1. Full Vulnerability Scan (All checks)    │
+│  2. Quick Scan (Headers + Versions + Files) │
+│  3. OWASP Top 10 Assessment                 │
+│  4. Injection Testing (XSS, SQLi, LFI)      │
+│  5. SSL/TLS & Headers Check                 │
+│  6. Batch Scan (All Targets)                │
+│  B. Back to Main Menu                       │
+└─────────────────────────────────────────────┘
+```
 
 ### Target Management
 
 **Single Target:**
+
 ```
 T -> 1 -> Enter URL/IP
 ```
 
 **Batch from File:**
 Create `targets.txt`:
+
 ```txt
 https://example.com
 https://test-site.com
@@ -186,6 +225,7 @@ https://test-site.com
 ```
 
 Then:
+
 ```
 T -> 2 -> targets.txt
 ```
@@ -194,6 +234,7 @@ T -> 2 -> targets.txt
 
 **Load Proxies from File:**
 Create `proxies.txt`:
+
 ```txt
 192.168.1.100:8080
 http://10.0.0.1:3128
@@ -202,23 +243,28 @@ user:password@proxy.corp.com:8080
 ```
 
 Then:
+
 ```
 P -> 1 -> proxies.txt
 ```
 
 **Supported Formats:**
+
 - `ip:port` - Basic format (assumes HTTP)
 - `http://ip:port` - Explicit HTTP proxy
 - `https://ip:port` - HTTPS proxy
 - `user:pass@ip:port` - Authenticated proxy
 
 **Proxy Management:**
+
 - View loaded proxies: `P -> 2`
 - Clear all proxies: `P -> 3`
 - Proxies rotate randomly across all HTTP requests in all modules
 
 ### Configuration
+
 Access via `C` from main menu:
+
 - Timeout settings
 - Output file naming
 - Auto-save preferences
@@ -229,6 +275,7 @@ Access via `C` from main menu:
 ## 📊 Examples
 
 ### Example 1: Single Target Full Recon
+
 ```bash
 # Run CobraScan
 python main.py
@@ -243,6 +290,7 @@ Press 1 -> 11 (Full Reconnaissance Scan)
 ```
 
 ### Example 2: Security Headers & SSL Check
+
 ```bash
 python main.py
 Press T -> 1 -> https://bank.example.com
@@ -255,6 +303,7 @@ Press 1 -> 4 (SSL/TLS Certificate Analysis)
 ```
 
 ### Example 3: Batch Security Assessment
+
 ```bash
 # Create target list
 echo "https://site1.com" > targets.txt
@@ -270,6 +319,7 @@ Press 1 -> 12 (Batch Scan from Loaded Targets)
 ```
 
 ### Example 4: Content & Performance Analysis
+
 ```bash
 python main.py
 Press T -> 1 -> https://example.com
@@ -285,6 +335,7 @@ Press 1 -> 10 (Technology Detection)
 ```
 
 ### Sample JSON Output (Full Recon)
+
 ```json
   {
     "scan_info": {
@@ -497,11 +548,13 @@ Press 1 -> 10 (Technology Detection)
 ### Creating a New Module
 
 1. **Copy the Template**:
+
    ```bash
    cp dev/module_template.py modules/your_module.py
    ```
 
 2. **Customize Your Module**:
+
    ```python
    # modules/your_module.py
    class YourModuleName:
@@ -517,6 +570,7 @@ Press 1 -> 10 (Technology Detection)
    ```
 
 3. **Register the Module** in `main.py`:
+
    ```python
    # Add to _load_modules() method
    from modules.your_module import YourModuleName
@@ -524,6 +578,7 @@ Press 1 -> 10 (Technology Detection)
    ```
 
 ### Module Template Features
+
 - Pre-built menu system
 - Configuration management
 - Target handling
@@ -532,6 +587,7 @@ Press 1 -> 10 (Technology Detection)
 - JSON export utilities
 
 ### Best Practices
+
 1. Follow the template structure
 2. Include comprehensive docstrings
 3. Add error handling for network issues
@@ -545,12 +601,14 @@ Press 1 -> 10 (Technology Detection)
 ## 🛣️ Roadmap
 
 ### Current Modules
+
 - ✅ **Web Analyzer** - Comprehensive web target analysis (v2.0.0)
 - ✅ **Sensitive Path Finder** - Admin panels, CMS paths, API endpoints, sensitive files (v1.0.0)
 - ✅ **Subdomain Enumeration** - DNS bruteforce, certificate transparency, zone transfer (v1.0.0)
+- ✅ **Vulnerability Scanner** - CVE detection, OWASP Top 10, injection testing (v1.0.0)
 
 ### Planned Modules
-- 📋 **Vulnerability Scanner** - CVE detection and OWASP Top 10 checks
+
 - 🔌 **API Security Tester** - REST/GraphQL endpoint testing and validation
 - 🗺️ **Network Mapper** - Network topology visualization and CIDR scanning
 - 🔍 **OSINT Collector** - Open-source intelligence gathering and correlation
@@ -559,6 +617,7 @@ Press 1 -> 10 (Technology Detection)
 - 🌐 **Wayback Machine Scanner** - Historical snapshot analysis
 
 ### Core Enhancements
+
 - ⚡ Multi-threading support
 - ✅ **Proxy Integration** - HTTP/HTTPS proxy rotation from file lists
 - 📋 Tor integration
@@ -570,7 +629,30 @@ Press 1 -> 10 (Technology Detection)
 
 ## 📝 Changelog
 
-### Version 1.5.0 (Current)
+### Version 1.6.0 (Current)
+
+- **Vulnerability Scanner v1.0.0**: New comprehensive security assessment module
+  - ✨ New: OWASP Top 10 2021 complete coverage
+  - ✨ New: CVE detection for Apache, PHP, jQuery, WordPress, OpenSSL
+  - ✨ New: Reflected XSS vulnerability testing
+  - ✨ New: SQL injection error-based detection
+  - ✨ New: Path traversal/LFI testing
+  - ✨ New: Open redirect vulnerability detection
+  - ✨ New: SSL/TLS version and cipher analysis
+  - ✨ New: Security header analysis with recommendations
+  - ✨ New: CORS misconfiguration detection
+  - ✨ New: Sensitive file exposure scanning
+  - ✨ New: Severity-based findings with OWASP mapping
+  - ✨ New: Batch scanning support
+
+- **Results Manager**: Enhanced results handling
+  - ✨ New: View and clear scan results from CLI
+  - ✨ New: Generate HTML security reports
+  - ✨ New: Host reports via Flask server
+  - ✨ New: Reports grouped by target (no duplicates)
+
+### Version 1.5.0
+
 - **Proxy Support**: HTTP/HTTPS proxy integration across all modules
   - ✨ New: Load proxies from text file (one per line)
   - ✨ New: Support for multiple formats (ip:port, http://, https://, user:pass@)
@@ -580,6 +662,7 @@ Press 1 -> 10 (Technology Detection)
   - 🔧 Updated: All modules (Web Analyzer, Path Finder, Subdomain) use proxies
 
 ### Version 1.4.0
+
 - **Sensitive Path Finder v1.0.0**: New module for path discovery
   - ✨ New: Admin/Login path scanning (40+ paths)
   - ✨ New: CMS-specific paths (WordPress, Joomla, Drupal, Magento, Laravel)
@@ -600,6 +683,7 @@ Press 1 -> 10 (Technology Detection)
   - ✨ New: Batch enumeration across multiple domains
 
 ### Version 1.3.0
+
 - **Web Analyzer v2.0.0**: Major expansion with 12 scan types
   - ✨ New: HTTP Methods vulnerability scanning (TRACE, PUT, DELETE detection)
   - ✨ New: Content analysis (emails, meta tags, sensitive paths)
@@ -613,6 +697,7 @@ Press 1 -> 10 (Technology Detection)
   - 📈 Improved: Better error handling and user feedback
 
 ### Version 1.2.5
+
 - Modular Architecture: Complete refactor to plugin system
 - Dynamic Module Loading: Automatic menu generation
 - Module Template: Easy module creation
@@ -620,12 +705,14 @@ Press 1 -> 10 (Technology Detection)
 - Bug Fixes: Banner spacing and error handling
 
 ### Version 1.2.0
+
 - Rebranded to CobraScan
 - Target Manager: Single and batch scanning
 - Configuration System: Persistent settings
 - Enhanced UI: Improved user interface
 
 ### Version 1.0.0
+
 - Initial Release
 - Basic Scanning: Core functionality
 - JSON Export: Structured output
@@ -641,19 +728,28 @@ CobraScan/
 │
 ├── main.py                 # Main application entry point
 ├── README.md               # Documentation
+├── CLAUDE.md               # AI assistant guidance
 ├── requirements.txt        # Python dependencies
 │
 ├── helpers/                # Helper modules
 │   ├── __init__.py
 │   ├── target_manager.py   # Target loading and management
 │   ├── proxy_manager.py    # HTTP/HTTPS proxy rotation
+│   ├── http_client.py      # Proxy-aware HTTP client
+│   ├── report_builder.py   # HTML report generation
+│   ├── report_server.py    # Flask report hosting
 │   └── utils.py            # Utility functions
+│
+├── reports/                # Generated HTML reports
+│   ├── style.css           # Report stylesheet
+│   └── *.html              # Target reports
 │
 ├── modules/                # Scan modules (auto-loaded)
 │   ├── __init__.py
 │   ├── web_analyzer.py     # Web analysis module (v2.0.0)
 │   ├── path_finder.py      # Sensitive path discovery (v1.0.0)
-│   └── sub_domain.py       # Subdomain enumeration (v1.0.0)
+│   ├── sub_domain.py       # Subdomain enumeration (v1.0.0)
+│   └── vuln_scanner.py     # Vulnerability scanner (v1.0.0)
 │
 ├── guides/                 # Development resources
 │   ├── module_creation_guide.md
@@ -663,12 +759,15 @@ CobraScan/
 ├── cobra_config.json       # Configuration (auto-generated)
 └── cobra_scan_results.json # Scan results (auto-generated)
 ```
+
 ---
+
 ## ⚖️ Legal Disclaimer
 
 **CobraScan is for authorized security testing only.**
 
 ### ❌ Prohibited Use
+
 - Scanning systems without explicit permission
 - Malicious or disruptive activities
 - Violating laws or terms of service
@@ -681,21 +780,27 @@ CobraScan/
 ## 📞 Support
 
 ### Documentation
+
 - [Module Creation Guide](dev/module_creation_guide.md)
 
 ### Contact
-- **Email**: dev@sinners.city
+
+- **Email**: <dev@sinners.city>
 - **GitHub**: [@Syn2Much](https://github.com/Syn2Much)
 - **Website**: [sinners.city](https://sinners.city)
 
 ---
 
 <div align="center">
+s
+## 🐍 CobraScan - The All-Seeing Reconnaissance Tool
+
+*In the realm of security, visibility is power. CobraScan grants you omniscience.*
 
 **⭐ If you find this useful, please give it a star! ⭐**
 
-[Report Bug](https://github.com/Syn2Much/CobraScan/issues) · 
-[Request Feature](https://github.com/Syn2Much/CobraScan/issues) · 
+[Report Bug](https://github.com/Syn2Much/CobraScan/issues) ·
+[Request Feature](https://github.com/Syn2Much/CobraScan/issues) ·
 [View Source](https://github.com/Syn2Much/CobraScan)
 
 ---
