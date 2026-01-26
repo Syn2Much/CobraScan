@@ -21,6 +21,18 @@
 - **💾 Persistent Configuration**: Save preferences between sessions
 - **📈 JSON Export**: Structured data for automation and reporting
 
+### Vulnerability Scanner Module (v1.0.0) - NEW 🔓
+
+- **📋 OWASP Top 10**: Complete coverage of OWASP Top 10 2021 categories
+- **🔍 CVE Detection**: Known vulnerable software signatures (Apache, PHP, jQuery, WordPress, etc.)
+- **💉 Injection Testing**: XSS (reflected), SQL injection, command injection, path traversal
+- **🔒 SSL/TLS Analysis**: TLS version, cipher strength, certificate expiry checks
+- **🛡️ Security Headers**: CSP, HSTS, X-Frame-Options, CORS misconfiguration
+- **📂 Sensitive Files**: .git, .env, config backups, database dumps, logs
+- **🔄 Open Redirect**: URL redirect vulnerability detection
+- **📊 Risk Scoring**: Severity-based findings with OWASP categorization
+- **📦 Batch Scanning**: Scan multiple targets with comprehensive reports
+- 
 ### Web Analyzer Module (v2.0.0)
 
 - **🌐 Quick Scan**: Basic HTTP information (status, server, encoding)
@@ -56,17 +68,6 @@
 - **📋 Custom Wordlists**: Support for external subdomain wordlists
 - **📦 Batch Scanning**: Enumerate subdomains across multiple domains
 
-### Vulnerability Scanner Module (v1.0.0) - NEW 🔓
-
-- **📋 OWASP Top 10**: Complete coverage of OWASP Top 10 2021 categories
-- **🔍 CVE Detection**: Known vulnerable software signatures (Apache, PHP, jQuery, WordPress, etc.)
-- **💉 Injection Testing**: XSS (reflected), SQL injection, command injection, path traversal
-- **🔒 SSL/TLS Analysis**: TLS version, cipher strength, certificate expiry checks
-- **🛡️ Security Headers**: CSP, HSTS, X-Frame-Options, CORS misconfiguration
-- **📂 Sensitive Files**: .git, .env, config backups, database dumps, logs
-- **🔄 Open Redirect**: URL redirect vulnerability detection
-- **📊 Risk Scoring**: Severity-based findings with OWASP categorization
-- **📦 Batch Scanning**: Scan multiple targets with comprehensive reports
 
 ---
 
@@ -606,15 +607,12 @@ Press 1 -> 10 (Technology Detection)
 - ✅ **Sensitive Path Finder** - Admin panels, CMS paths, API endpoints, sensitive files (v1.0.0)
 - ✅ **Subdomain Enumeration** - DNS bruteforce, certificate transparency, zone transfer (v1.0.0)
 - ✅ **Vulnerability Scanner** - CVE detection, OWASP Top 10, injection testing (v1.0.0)
-
+- ✅ **Report Generator** - Professional HTML 
 ### Planned Modules
 
 - 🔌 **API Security Tester** - REST/GraphQL endpoint testing and validation
 - 🗺️ **Network Mapper** - Network topology visualization and CIDR scanning
 - 🔍 **OSINT Collector** - Open-source intelligence gathering and correlation
-- 📝 **Report Generator** - Professional HTML/PDF/XLSX reporting
-- 🔐 **Credential Tester** - Authorized credential validation
-- 🌐 **Wayback Machine Scanner** - Historical snapshot analysis
 
 ### Core Enhancements
 
