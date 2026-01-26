@@ -165,4 +165,3 @@ CobraScan/
 **Made with 🐍 by [Syn2Much](https://github.com/Syn2Much)**
 
 </div>
-```
