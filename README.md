@@ -1,7 +1,8 @@
 
-# Cobra Scan 🐍
+# Cobra - a penetration testing framework for security professionals and ethical hackers
+ 
 
-*A powerful, modular reconnaissance tool for security professionals, ethical hackers, and system administrators. Perform deep scans and generate detailed pentest reports on the fly*
+Cobra performs deep web reconnaissance, vulnerability discovery, and pentest report generation through a clean, plugin-based architecture.
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -10,49 +11,87 @@
 
 ---
 
-## ✨ Features
+## 📌 Overview
 
-### Core Capabilities
+**Cobra Scan** is designed to be:
 
-- **🔌 Modular Architecture**: Plugin-based system for easy extension
-- **🎯 Target Management**: Single or batch target scanning
-- **🌐 Proxy Support**: HTTP/HTTPS proxy rotation from file lists
-- **💾 Persistent Configuration**: Save preferences between sessions
-- **📈 Export Options**: JSON data export and HTML/PDF reports with optional Flask web panel
-- **📝 Verbose Logging**: Real-time colored terminal output with toggle support
+* 🔧 **Extensible** – drop-in modules
+* ⚡ **Fast** – multi-threaded where possible
+* 📊 **Insightful** – real-time output + structured reports
+* 🧩 **Modular** – scan only what you need
 
-### Modules
+Perfect for:
 
-**Vulnerability Scanner (v2.0.0)**
+* Web app security testing
+* Reconnaissance & attack surface mapping
+* Automated pentest report generation
 
-- OWASP Top 10 coverage, CVE detection, injection testing (XSS, SQLi, command injection, path traversal)
-- SSL/TLS analysis, security headers check, sensitive file detection, open redirect testing
-- Risk scoring with severity-based findings
-- Verbose mode with real-time test progress and vulnerability alerts
-- ✨ Clean logging with urllib3 warnings disabled
+---
 
-**Sensitive Path Finder (v2.0.0)**
+## ✨ Key Features
 
-- Admin/login paths, CMS detection (WordPress, Joomla, Drupal, etc.)
-- API endpoints (REST, GraphQL, Swagger), sensitive files (.git, .env, configs)
-- Multi-threaded scanning with custom wordlist support
-- Live progress bar and instant path discovery alerts
-- ✨ Improved logging with urllib3 warnings disabled
+* 🔌 **Modular plugin system**
+* 🎯 **Single or batch target scanning**
+* 🌐 **HTTP / HTTPS proxy support**
+* 💾 **Persistent configuration**
+* 📈 **JSON, HTML & PDF reporting**
+* 🖥️ **Optional Flask-based web panel**
+* 📝 **Verbose, colorized logging**
 
-**Subdomain Enumeration (v2.0.0)**
 
-- DNS bruteforce (quick & deep wordlists), certificate transparency (crt.sh)
-- Zone transfer testing, reverse DNS, custom wordlists
-- Verbose logging for DNS lookups, CT queries, and zone transfers
-- ✨ Clean output with urllib3 warnings disabled
+---
 
-**Web Analyzer (v2.0.0)**
+## 🧩 Available Modules
 
-- HTTP info, DNS reconnaissance, IP geolocation, SSL/TLS analysis
-- Security headers, HTTP methods scan, content analysis, performance metrics
-- Port scanning (21 common ports), technology detection
-- Real-time verbose logging with 9-phase progress tracking
-- ✨ Clean logging with urllib3 warnings disabled
+### 🔍 Web Analyzer (v2.0.0)
+
+* HTTP & DNS reconnaissance
+* IP geolocation & SSL/TLS analysis
+* Security headers & HTTP methods
+* Technology fingerprinting
+* Performance metrics
+* Port scanning (21 common ports)
+* 9-phase real-time progress tracking
+
+---
+
+### 🗂️ Sensitive Path Finder (v2.0.0)
+
+* Admin & login panels
+* CMS detection (WordPress, Joomla, Drupal, etc.)
+* API endpoints (REST, GraphQL, Swagger)
+* Sensitive files (`.git`, `.env`, configs)
+* Custom wordlists
+* Multi-threaded scanning with live alerts
+
+---
+
+### 🌐 Subdomain Enumeration (v2.0.0)
+
+* DNS brute force (quick & deep wordlists)
+* Certificate Transparency (`crt.sh`)
+* Zone transfer testing
+* Reverse DNS lookups
+* Custom wordlist support
+* Verbose DNS and CT logging
+
+---
+
+### 🚨 Vulnerability Scanner (v2.0.0)
+
+* OWASP Top 10 coverage
+* CVE detection
+* Injection testing:
+
+  * XSS
+  * SQLi
+  * Command injection
+  * Path traversal
+* SSL/TLS misconfigurations
+* Security header analysis
+* Open redirect testing
+* Sensitive file exposure
+* Severity-based risk scoring
 
 ---
 
@@ -65,33 +104,66 @@ pip install -r requirements.txt
 python main.py
 ```
 
-**Requirements**: Python 3.8+
+**Requirements**
+
+* Python **3.8+**
+* Linux / macOS / Windows
 
 ---
 
 ## 🚀 Quick Start
 
-1. **Start**: `python main.py`
-2. **Load Targets**: Press `T` → Single target or file (one per line)
-3. **Load Proxies** (Optional): Press `P` → Load from file
-4. **Run Scans**: Select module → Choose scan type → View/export results
-5. **Configure**: Press `C` → Adjust timeout, output settings
+1. **Launch**
 
-### Main Menu
+   ```bash
+   python main.py
+   ```
+
+2. **Load Targets**
+
+   * Press `T`
+   * Single target or file input (one per line)
+
+3. **(Optional) Load Proxies**
+
+   * Press `P`
+   * Load proxy list from file
+
+4. **Run Scans**
+
+   * Select a module
+   * Choose scan type
+   * View results or export reports
+
+5. **Configure Settings**
+
+   * Press `C`
+   * Adjust timeouts, verbosity, output formats
+
+---
+
+## 🧭 Main Menu
 
 ```
 Available Modules:
-1. Web Analyzer (v2.0.0)
-2. Sensitive Path Finder (v1.0.0)
-3. Subdomain Enumeration (v1.0.0)
-4. Vulnerability Scanner (v1.0.0)
+1. Web Analyzer
+2. Sensitive Path Finder
+3. Subdomain Enumeration
+4. Vulnerability Scanner
 
-T. Load Target    P. Load Proxies
-R. Results        C. Configuration
-H. Help           Q. Exit
+T. Load Targets
+P. Load Proxies
+R. Results
+C. Configuration
+H. Help
+Q. Exit
 ```
 
-### Target File Example (`targets.txt`)
+---
+
+## 📄 Input File Examples
+
+### Targets (`targets.txt`)
 
 ```txt
 https://example.com
@@ -99,7 +171,7 @@ https://test-site.com
 192.168.1.1
 ```
 
-### Proxy File Example (`proxies.txt`)
+### Proxies (`proxies.txt`)
 
 ```txt
 192.168.1.100:8080
@@ -107,33 +179,6 @@ http://10.0.0.1:3128
 https://proxy.example.com:8443
 user:password@proxy.corp.com:8080
 ```
-
----
-
-## 🔌 Module Development
-
-1. **Copy Template**: `cp dev/module_template.py modules/your_module.py`
-2. **Customize**: Define `name`, `version`, and `run()` method
-3. **Register**: Add import to `main.py`
-
-```python
-class YourModule:
-    def __init__(self):
-        self.name = "Your Module"
-        self.version = "1.0.0"
-    
-    def run(self, config, target_manager, proxy_manager=None):
-        # Your logic here
-        pass
-```
-
----
-
-## 🛣️ Roadmap
-
-**Current**: Web Analyzer, Path Finder, Subdomain Enum, Vuln Scanner, HTML Reports
-
-**Planned**: API Security Tester, Network Mapper, OSINT Collector, Multi-threading, Tor integration, WAF detection
 
 ---
 
@@ -147,7 +192,7 @@ CobraScan/
 │   ├── proxy_manager.py
 │   ├── http_client.py
 │   └── report_builder.py
-├── modules/                # Scan modules (auto-loaded)
+├── modules/                # Scan modules
 │   ├── web_analyzer.py
 │   ├── path_finder.py
 │   ├── sub_domain.py
@@ -158,26 +203,51 @@ CobraScan/
 
 ---
 
-## ⚖️ Legal Disclaimer
+## 🛣️ Roadmap
 
-**For authorized security testing only.** Users are responsible for compliance with all applicable laws. Prohibited: unauthorized scanning, malicious activities, violating terms of service.
+**Current**
+
+* Web Analyzer
+* Path Finder
+* Subdomain Enumeration
+* Vulnerability Scanner
+* HTML / PDF Reports
+
+**Planned**
+
+* API Security Tester
+* Network Mapper
+* OSINT Collector
+* Expanded multi-threading
+* Tor integration
+* WAF detection
 
 ---
 
-## 📞 Support
+## ⚖️ Legal Disclaimer
 
-**Email**: <dev@sinners.city>  
-**GitHub**: [@Syn2Much](https://github.com/Syn2Much)  
-**Website**: [sinners.city](https://sinners.city)
+⚠️ **Authorized testing only**
 
-[Report Bug](https://github.com/Syn2Much/CobraScan/issues) · [Request Feature](https://github.com/Syn2Much/CobraScan/issues)
+Cobra is intended for legal security testing and educational use.
+Unauthorized scanning, abuse, or violations of terms of service are strictly prohibited.
+
+---
+
+## 📞 Support & Contact
+
+* **Email**: [dev@sinners.city](mailto:dev@sinners.city)
+* **GitHub**: [@Syn2Much](https://github.com/Syn2Much)
+* **Website**: [https://sinners.city](https://sinners.city)
+
+👉 [Report a Bug](https://github.com/Syn2Much/CobraScan/issues)
+👉 [Request a Feature](https://github.com/Syn2Much/CobraScan/issues)
 
 ---
 
 <div align="center">
 
-**⭐ Star this repo if you find it useful! ⭐**
-
-**Made with 🐍 by [Syn2Much](https://github.com/Syn2Much)**
+⭐ **Star the repo if you find it useful!** ⭐
 
 </div>
+
+
