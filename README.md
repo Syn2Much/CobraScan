@@ -23,25 +23,28 @@
 
 ### Modules
 
-**Vulnerability Scanner (v1.0.0)**
+**Vulnerability Scanner (v2.0.0)**
 
 - OWASP Top 10 coverage, CVE detection, injection testing (XSS, SQLi, command injection, path traversal)
 - SSL/TLS analysis, security headers check, sensitive file detection, open redirect testing
 - Risk scoring with severity-based findings
 - Verbose mode with real-time test progress and vulnerability alerts
+- ✨ Clean logging with urllib3 warnings disabled
 
-**Sensitive Path Finder (v1.0.0)**
+**Sensitive Path Finder (v2.0.0)**
 
 - Admin/login paths, CMS detection (WordPress, Joomla, Drupal, etc.)
 - API endpoints (REST, GraphQL, Swagger), sensitive files (.git, .env, configs)
 - Multi-threaded scanning with custom wordlist support
 - Live progress bar and instant path discovery alerts
+- ✨ Improved logging with urllib3 warnings disabled
 
-**Subdomain Enumeration (v1.0.0)**
+**Subdomain Enumeration (v2.0.0)**
 
 - DNS bruteforce (quick & deep wordlists), certificate transparency (crt.sh)
 - Zone transfer testing, reverse DNS, custom wordlists
 - Verbose logging for DNS lookups, CT queries, and zone transfers
+- ✨ Clean output with urllib3 warnings disabled
 
 **Web Analyzer (v2.0.0)**
 
@@ -49,6 +52,7 @@
 - Security headers, HTTP methods scan, content analysis, performance metrics
 - Port scanning (21 common ports), technology detection
 - Real-time verbose logging with 9-phase progress tracking
+- ✨ Clean logging with urllib3 warnings disabled
 
 ---
 
