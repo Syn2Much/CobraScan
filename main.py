@@ -11,6 +11,11 @@ import importlib
 import time
 from pathlib import Path
 
+# Suppress urllib3 warnings for clean logs
+import urllib3
+
+urllib3.disable_warnings()
+
 from helpers.target_manager import TargetManager
 from helpers.proxy_manager import ProxyManager
 from helpers.utils import Colors, clear_screen
@@ -23,7 +28,7 @@ class CobraScanner:
 
     def __init__(self):
         self.app_name = "CobraScan"
-        self.version = "2.3.5"
+        self.version = "2.5"
         self.config = {
             "timeout": 10,
             "output_file": "cobra_scan_results.json",
@@ -206,23 +211,40 @@ class CobraScanner:
 
     def load_target_menu(self):
         """Interactive menu to load single target or file."""
-        clear_screen()
-        self.print_banner()
+        while True:
+            clear_screen()
+            self.print_banner()
 
-        print(f"\n{Colors.HEADER}═══ Load Target ═══{Colors. ENDC}\n")
-        print(f"{Colors.OKBLUE}Options:{Colors.ENDC}")
-        print("┌────────────────────────────────────────────────────────────┐")
-        print("│ 1. Load Single URL/IP Address                              │")
-        print(" 2. Load Multiple Targets from File                          │")
-        print("│ 0. Back to Main Menu                                       │")
-        print("└────────────────────────────────────────────────────────────┘\n")
+            print(f"\n{Colors.HEADER}═══ Load Target ═══{Colors.ENDC}\n")
 
-        choice = self.get_input("Select option:  ", False)
+            # Show current target status
+            target_count = self.target_manager.get_target_count()
+            if target_count > 0:
+                if target_count == 1:
+                    target = self.target_manager.get_current_target()
+                    print(
+                        f"{Colors.OKGREEN}[✓] Current target: {target}{Colors.ENDC}\n"
+                    )
+                else:
+                    print(
+                        f"{Colors.OKGREEN}[✓] Currently loaded: {target_count} targets{Colors.ENDC}\n"
+                    )
 
-        if choice == "1":
-            self.load_single_target()
-        elif choice == "2":
-            self.load_targets_from_file()
+            print(f"{Colors.OKBLUE}Options:{Colors.ENDC}")
+            print("┌────────────────────────────────────────────────────────────┐")
+            print("│ 1. Load Single URL/IP Address                              │")
+            print("│ 2. Load Multiple Targets from File                         │")
+            print("│ 0. Back to Main Menu                                       │")
+            print("└────────────────────────────────────────────────────────────┘\n")
+
+            choice = self.get_input("Select option: ", False)
+
+            if choice == "0":
+                break
+            elif choice == "1":
+                self.load_single_target()
+            elif choice == "2":
+                self.load_targets_from_file()
 
     def load_single_target(self):
         """Load a single URL or IP address."""
@@ -266,34 +288,37 @@ class CobraScanner:
 
     def load_proxy_menu(self):
         """Interactive menu to load proxies from file."""
-        clear_screen()
-        self.print_banner()
+        while True:
+            clear_screen()
+            self.print_banner()
 
-        print(f"\n{Colors.HEADER}═══ Load Proxies ═══{Colors.ENDC}\n")
+            print(f"\n{Colors.HEADER}═══ Load Proxies ═══{Colors.ENDC}\n")
 
-        # Show current proxy status
-        proxy_count = self.proxy_manager.get_count()
-        if proxy_count > 0:
-            print(
-                f"{Colors.OKGREEN}[✓] Currently loaded: {proxy_count} proxies{Colors.ENDC}\n"
-            )
+            # Show current proxy status
+            proxy_count = self.proxy_manager.get_count()
+            if proxy_count > 0:
+                print(
+                    f"{Colors.OKGREEN}[✓] Currently loaded: {proxy_count} proxies{Colors.ENDC}\n"
+                )
 
-        print(f"{Colors.OKBLUE}Options:{Colors.ENDC}")
-        print("┌────────────────────────────────────────────────────────────┐")
-        print("│ 1. Load Proxies from File                                  │")
-        print("│ 2. View Loaded Proxies                                     │")
-        print("│ 3. Clear All Proxies                                       │")
-        print("│ 0. Back to Main Menu                                       │")
-        print("└────────────────────────────────────────────────────────────┘\n")
+            print(f"{Colors.OKBLUE}Options:{Colors.ENDC}")
+            print("┌────────────────────────────────────────────────────────────┐")
+            print("│ 1. Load Proxies from File                                  │")
+            print("│ 2. View Loaded Proxies                                     │")
+            print("│ 3. Clear All Proxies                                       │")
+            print("│ 0. Back to Main Menu                                       │")
+            print("└────────────────────────────────────────────────────────────┘\n")
 
-        choice = self.get_input("Select option: ", False)
+            choice = self.get_input("Select option: ", False)
 
-        if choice == "1":
-            self.load_proxies_from_file()
-        elif choice == "2":
-            self.view_loaded_proxies()
-        elif choice == "3":
-            self.clear_proxies()
+            if choice == "0":
+                break
+            elif choice == "1":
+                self.load_proxies_from_file()
+            elif choice == "2":
+                self.view_loaded_proxies()
+            elif choice == "3":
+                self.clear_proxies()
 
     def load_proxies_from_file(self):
         """Load proxies from a text file."""
@@ -511,44 +536,46 @@ Each module has its own menu with specific scan options.
         """View or clear persistent JSON results."""
         import json, os
 
-        clear_screen()
-        self.print_banner()
+        while True:
+            clear_screen()
+            self.print_banner()
 
-        print(f"\n{Colors.HEADER}═══ Results Manager ═══{Colors.ENDC}\n")
-        output_file = self.config.get("output_file", "cobra_scan_results.json")
-        print(f"{Colors.OKCYAN}Current results file:{Colors.ENDC} {output_file}\n")
+            print(f"\n{Colors.HEADER}═══ Results Manager ═══{Colors.ENDC}\n")
+            output_file = self.config.get("output_file", "cobra_scan_results.json")
+            print(f"{Colors.OKCYAN}Current results file:{Colors.ENDC} {output_file}\n")
 
-        # Load current results
-        results = []
-        try:
-            if os.path.exists(output_file):
-                with open(output_file, "r") as f:
-                    results = json.load(f)
-            if not isinstance(results, list):
-                results = [results]
-        except Exception:
+            # Load current results
             results = []
+            try:
+                if os.path.exists(output_file):
+                    with open(output_file, "r") as f:
+                        results = json.load(f)
+                if not isinstance(results, list):
+                    results = [results]
+            except Exception:
+                results = []
 
-        print(f"{Colors.OKGREEN}Entries:{Colors.ENDC} {len(results)}\n")
-        print(f"{Colors.OKBLUE}Options:{Colors.ENDC}")
-        print("┌────────────────────────────────────────────────────────────┐")
-        print("│ 1. View Summary                                            │")
-        print("│ 2. Clear All Results                                       │")
-        print("│ 3. Generate HTML Security Report                           │")
-        print("│ 4. Host Reports via Flask (static server)                  │")
-        print("│ 0. Back to Main Menu                                       │")
-        print("└────────────────────────────────────────────────────────────┘\n")
+            print(f"{Colors.OKGREEN}Entries:{Colors.ENDC} {len(results)}\n")
+            print(f"{Colors.OKBLUE}Options:{Colors.ENDC}")
+            print("┌────────────────────────────────────────────────────────────┐")
+            print("│ 1. View Summary                                            │")
+            print("│ 2. Clear All Results                                       │")
+            print("│ 3. Generate HTML Security Report                           │")
+            print("│ 4. Host Reports via Flask (static server)                  │")
+            print("│ 0. Back to Main Menu                                       │")
+            print("└────────────────────────────────────────────────────────────┘\n")
 
-        choice = self.get_input("Select option: ", False)
-        if choice == "1":
-            self._view_results_summary(results)
-        elif choice == "2":
-            self._clear_results_file(output_file)
-        elif choice == "3":
-            self._generate_html_report(results)
-        elif choice == "4":
-            self._host_reports_server()
-        # any other goes back
+            choice = self.get_input("Select option: ", False)
+            if choice == "0":
+                break
+            elif choice == "1":
+                self._view_results_summary(results)
+            elif choice == "2":
+                self._clear_results_file(output_file)
+            elif choice == "3":
+                self._generate_html_report(results)
+            elif choice == "4":
+                self._host_reports_server()
 
     def _view_results_summary(self, results):
         """Show a concise summary of saved results."""

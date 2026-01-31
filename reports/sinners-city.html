@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CobraScan - sinners.city</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><span class="logo">🛡️</span> CobraScan - sinners.city</h1>
+      <div class="muted">Generated: 2026-01-31 14:14:10</div>
+    </header>
+    
+        <div class="card">
+          <h2>Target Overview</h2>
+          <div class="stats-row">
+            <div class="stat-item"><span class="stat-value">1</span><span class="stat-label">Total Scans</span></div>
+            <div class="stat-item"><span class="stat-value">0</span><span class="stat-label">Web Analysis</span></div>
+            <div class="stat-item"><span class="stat-value">0</span><span class="stat-label">Path Scans</span></div>
+            <div class="stat-item"><span class="stat-value">0</span><span class="stat-label">Subdomain Scans</span></div>
+            <div class="stat-item"><span class="stat-value">1</span><span class="stat-label">Vuln Scans</span></div>
+          </div>
+          <div class="info-item"><strong>Target</strong><span>sinners.city</span></div>
+        </div>
+        <section class="card vuln-card">
+      <h2><span class="icon">🔓</span> Vulnerability Assessment</h2>
+      <div class="risk-banner high">
+        <div class="risk-score">4</div>
+        <div class="risk-label">Total Findings</div>
+      </div>
+      <div class="stats-row severity-stats">
+        <div class="stat-item stat-critical"><span class="stat-value">0</span><span class="stat-label">Critical</span></div>
+        <div class="stat-item stat-high"><span class="stat-value">2</span><span class="stat-label">High</span></div>
+        <div class="stat-item stat-medium"><span class="stat-value">1</span><span class="stat-label">Medium</span></div>
+        <div class="stat-item stat-low"><span class="stat-value">1</span><span class="stat-label">Low</span></div>
+      </div>
+      <div class="grid">
+        <div class="info-item"><strong>Scanned</strong><span>2026-01-31T14:09:17.737915</span></div>
+        <div class="info-item"><strong>Target</strong><span>https://sinners.city</span></div>
+      </div>
+      <h3>OWASP Top 10 Assessment</h3>
+      <div class="owasp-grid"><div class="owasp-item vuln-pass"><span class="owasp-id">A01</span><span class="owasp-name">Broken Access Control</span><span class="owasp-status">✅ 0</span></div><div class="owasp-item vuln-pass"><span class="owasp-id">A02</span><span class="owasp-name">Cryptographic Failures</span><span class="owasp-status">✅ 0</span></div><div class="owasp-item vuln-pass"><span class="owasp-id">A03</span><span class="owasp-name">Injection</span><span class="owasp-status">✅ 0</span></div><div class="owasp-item vuln-pass"><span class="owasp-id">A04</span><span class="owasp-name">Insecure Design</span><span class="owasp-status">✅ 0</span></div><div class="owasp-item vuln-critical"><span class="owasp-id">A05</span><span class="owasp-name">Security Misconfiguration</span><span class="owasp-status">⚠️ 4</span></div><div class="owasp-item vuln-pass"><span class="owasp-id">A06</span><span class="owasp-name">Vulnerable Components</span><span class="owasp-status">✅ 0</span></div><div class="owasp-item vuln-pass"><span class="owasp-id">A07</span><span class="owasp-name">Auth Failures</span><span class="owasp-status">✅ 0</span></div><div class="owasp-item vuln-pass"><span class="owasp-id">A08</span><span class="owasp-name">Data Integrity Failures</span><span class="owasp-status">✅ 0</span></div><div class="owasp-item vuln-pass"><span class="owasp-id">A09</span><span class="owasp-name">Logging Failures</span><span class="owasp-status">✅ 0</span></div><div class="owasp-item vuln-pass"><span class="owasp-id">A10</span><span class="owasp-name">SSRF</span><span class="owasp-status">✅ 0</span></div></div>
+      <div class="scan-details"><div class='scan-detail'><strong>Security Headers:</strong> 4 present, 3 missing</div><div class='scan-detail'><strong>Version Disclosure:</strong> 0 detected, 0 vulnerable</div><div class='scan-detail'><strong>Sensitive Files:</strong> 1 exposed / 32 checked</div></div>
+      <h3>Detailed Findings</h3>
+      <table class="findings-table">
+      <thead><tr><th>Severity</th><th>Finding</th><th>Category</th><th>OWASP</th><th>CVE</th></tr></thead>
+      <tbody><tr class="finding-row finding-high">
+          <td><span class="badge badge-high">HIGH</span></td>
+          <td>
+            <strong>Missing Content-Security-Policy</strong>
+            <div class="finding-desc">Prevents XSS and data injection attacks</div>
+            
+          </td>
+          <td>Security Headers</td>
+          <td>A05</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-high">
+          <td><span class="badge badge-high">HIGH</span></td>
+          <td>
+            <strong>Missing Strict-Transport-Security</strong>
+            <div class="finding-desc">Enforces HTTPS connections</div>
+            
+          </td>
+          <td>Security Headers</td>
+          <td>A05</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-medium">
+          <td><span class="badge badge-medium">MEDIUM</span></td>
+          <td>
+            <strong>Sitemap (informational)</strong>
+            <div class="finding-desc">Sensitive file accessible at /sitemap.xml</div>
+            <div class="finding-evidence"><code>URL: https://sinners.city/sitemap.xml, Size: 189 bytes</code></div>
+          </td>
+          <td>Sensitive File Exposure</td>
+          <td>A05</td>
+          <td>-</td>
+        </tr><tr class="finding-row finding-low">
+          <td><span class="badge badge-low">LOW</span></td>
+          <td>
+            <strong>Missing Permissions-Policy</strong>
+            <div class="finding-desc">Controls browser feature access</div>
+            
+          </td>
+          <td>Security Headers</td>
+          <td>A05</td>
+          <td>-</td>
+        </tr></tbody>
+    </table>
+    </section>
+        
+    <footer>
+      <p>Report generated by <strong>CobraScan</strong></p>
+      <p class="muted">Security Assessment Report</p>
+    </footer>
+  </div>
+</body>
+</html>

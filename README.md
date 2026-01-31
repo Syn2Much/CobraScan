@@ -10,36 +10,45 @@
 ---
 ![Animation](https://github.com/user-attachments/assets/24c352a3-f529-468d-b253-28a01961f133)
 
-
 ## ✨ Features
 
 ### Core Capabilities
+
 - **🔌 Modular Architecture**: Plugin-based system for easy extension
 - **🎯 Target Management**: Single or batch target scanning
 - **🌐 Proxy Support**: HTTP/HTTPS proxy rotation from file lists
 - **💾 Persistent Configuration**: Save preferences between sessions
 - **📈 Export Options**: JSON data export and HTML/PDF reports with optional Flask web panel
+- **📝 Verbose Logging**: Real-time colored terminal output with toggle support
 
 ### Modules
 
 **Vulnerability Scanner (v1.0.0)**
+
 - OWASP Top 10 coverage, CVE detection, injection testing (XSS, SQLi, command injection, path traversal)
 - SSL/TLS analysis, security headers check, sensitive file detection, open redirect testing
 - Risk scoring with severity-based findings
+- Verbose mode with real-time test progress and vulnerability alerts
 
 **Sensitive Path Finder (v1.0.0)**
+
 - Admin/login paths, CMS detection (WordPress, Joomla, Drupal, etc.)
 - API endpoints (REST, GraphQL, Swagger), sensitive files (.git, .env, configs)
 - Multi-threaded scanning with custom wordlist support
+- Live progress bar and instant path discovery alerts
 
 **Subdomain Enumeration (v1.0.0)**
+
 - DNS bruteforce (quick & deep wordlists), certificate transparency (crt.sh)
 - Zone transfer testing, reverse DNS, custom wordlists
+- Verbose logging for DNS lookups, CT queries, and zone transfers
 
 **Web Analyzer (v2.0.0)**
+
 - HTTP info, DNS reconnaissance, IP geolocation, SSL/TLS analysis
 - Security headers, HTTP methods scan, content analysis, performance metrics
 - Port scanning (21 common ports), technology detection
+- Real-time verbose logging with 9-phase progress tracking
 
 ---
 
@@ -65,6 +74,7 @@ python main.py
 5. **Configure**: Press `C` → Adjust timeout, output settings
 
 ### Main Menu
+
 ```
 Available Modules:
 1. Web Analyzer (v2.0.0)
@@ -78,6 +88,7 @@ H. Help           Q. Exit
 ```
 
 ### Target File Example (`targets.txt`)
+
 ```txt
 https://example.com
 https://test-site.com
@@ -85,6 +96,7 @@ https://test-site.com
 ```
 
 ### Proxy File Example (`proxies.txt`)
+
 ```txt
 192.168.1.100:8080
 http://10.0.0.1:3128
@@ -150,7 +162,7 @@ CobraScan/
 
 ## 📞 Support
 
-**Email**: dev@sinners.city  
+**Email**: <dev@sinners.city>  
 **GitHub**: [@Syn2Much](https://github.com/Syn2Much)  
 **Website**: [sinners.city](https://sinners.city)
 

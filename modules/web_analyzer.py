@@ -21,19 +21,21 @@ import json
 import time
 import re
 
-from helpers.utils import Colors, clear_screen
+from helpers.utils import Colors, clear_screen, Logger, ScanContext
 
 
 class WebAnalyzer:
     """Core web analysis functionality with comprehensive scanning."""
 
-    def __init__(self, url, timeout=10, proxies=None, proxy_manager=None):
+    def __init__(self, url, timeout=10, proxies=None, proxy_manager=None, verbose=True):
         """Initialize web analyzer."""
         self.url = self._normalize_url(url)
         self.hostname = self._extract_hostname(url)
         self.timeout = timeout
         self.proxies = proxies  # Dict with 'http' and 'https' keys (legacy)
         self.proxy_manager = proxy_manager
+        self.verbose = verbose
+        self.logger = Logger(verbose=verbose, module_name="WebAnalyzer")
         self.data = None
         self.start_time = None
 
@@ -154,14 +156,22 @@ class WebAnalyzer:
 
     def fetch(self):
         """Perform HTTP GET request with proxy rotation if configured."""
+        self.logger.log(f"Fetching {self.url}...", "test")
         self.start_time = time.time()
         self.data = self._request_with_rotation("GET", self.url)
+        elapsed = time.time() - self.start_time
+        self.logger.log(f"Response received in {elapsed:.2f}s (Status: {self.data.status_code})", "success")
         return self.data
 
     def quick_scan(self):
         """Quick scan - basic HTTP info only."""
+        self.logger.log("Running quick scan...", "info")
         if self.data is None:
             self.fetch()
+        
+        self.logger.result("Status Code", str(self.data.status_code), "good" if self.data.ok else "bad")
+        self.logger.result("Server", self.data.headers.get("Server", "Not disclosed"), "neutral")
+        self.logger.result("Content Length", f"{len(self.data.content)} bytes", "neutral")
 
         return {
             "url": self.data.url,
@@ -178,6 +188,7 @@ class WebAnalyzer:
 
     def get_dns_info(self):
         """Get DNS resolution information."""
+        self.logger.log("Resolving DNS records...", "info")
         dns_info = {}
         try:
             hostname = self.hostname
@@ -186,13 +197,16 @@ class WebAnalyzer:
             try:
                 a_records = dns.resolver.resolve(hostname, "A")
                 dns_info["a_records"] = [str(record) for record in a_records]
+                self.logger.result("A Records", ", ".join(dns_info["a_records"]), "good")
             except Exception:
                 dns_info["a_records"] = "No A records found"
+                self.logger.result("A Records", "None found", "warn")
 
             # AAAA records (IPv6)
             try:
                 aaaa_records = dns.resolver.resolve(hostname, "AAAA")
                 dns_info["aaaa_records"] = [str(record) for record in aaaa_records]
+                self.logger.result("AAAA Records", ", ".join(dns_info["aaaa_records"]), "good")
             except Exception:
                 dns_info["aaaa_records"] = "No AAAA records found"
 
@@ -661,11 +675,15 @@ class WebAnalyzer:
 
         return technologies
 
-    def full_recon_scan(self):
-        """Comprehensive reconnaissance scan with all analysis."""
+    def full_recon_scan(self, config: dict = None):
+        """Comprehensive reconnaissance scan with all analysis and Ctrl+C handling."""
+        self.logger.log("Starting full reconnaissance scan...", "header", force=True)
+        print(f"{Colors.OKCYAN}  Note:{Colors.ENDC}   Press Ctrl+C to skip current phase\n")
+        
         if self.data is None:
             self.fetch()
-
+        
+        # Initialize results dict early for partial saves
         report = {
             "scan_info": {
                 "url": self.data.url,
@@ -687,17 +705,132 @@ class WebAnalyzer:
             "headers": dict(self.data.headers),
             "cookies": self.data.cookies.get_dict(),
             "redirects": [resp.url for resp in self.data.history],
-            "performance": self.get_performance_metrics(),
-            "content_analysis": self.analyze_content(),
-            "dns_info": self.get_dns_info(),
-            "ip_info": self.get_ip_info(),
-            "ssl_info": self.get_ssl_info(),
-            "http_methods": self.scan_http_methods(),
-            "security_headers": self.analyze_headers(),
-            "open_ports": self.scan_ports(),
-            "technologies": self.detect_technologies(),
         }
+        
+        output_file = config.get("output_file", "cobra_scan_results.json") if config else "cobra_scan_results.json"
+        
+        # Define scan phases
+        phases = [
+            (1, "HTTP Analysis", "🌐", self._phase_http_analysis),
+            (2, "Performance Metrics", "⚡", self._phase_performance),
+            (3, "DNS Resolution", "🔍", self._phase_dns),
+            (4, "IP & Geolocation", "🌍", self._phase_ip_geo),
+            (5, "SSL/TLS Certificate", "🔐", self._phase_ssl),
+            (6, "HTTP Methods", "📡", self._phase_methods),
+            (7, "Security Headers", "🛡️", self._phase_headers),
+            (8, "Port Scan", "🔌", self._phase_ports),
+            (9, "Technology Detection", "🔧", self._phase_tech),
+        ]
+        
+        with ScanContext(config, report, output_file) as ctx:
+            for phase_num, phase_name, icon, phase_func in phases:
+                if ctx.check():
+                    print(f"{Colors.WARNING}[SKIPPED] {phase_name}{Colors.ENDC}\n")
+                    report[phase_name.lower().replace(" ", "_").replace("/", "_")] = {"skipped": True}
+                    ctx.reset()
+                    continue
+                
+                try:
+                    self.logger.phase(phase_num, phase_name, icon)
+                    result = phase_func(report)
+                    if result:
+                        report.update(result)
+                except KeyboardInterrupt:
+                    print(f"\n{Colors.WARNING}[!] Phase skipped - continuing to next...{Colors.ENDC}")
+                    report[phase_name.lower().replace(" ", "_").replace("/", "_")] = {"skipped": True}
+                    ctx.reset()
+                except Exception as e:
+                    self.logger.log(f"Error in {phase_name}: {str(e)[:50]}", "error")
+        
+        self.logger.log("Full reconnaissance complete!", "success", force=True)
         return report
+    
+    def _phase_http_analysis(self, report):
+        """Phase 1: HTTP Analysis."""
+        self.logger.result("Status", f"{self.data.status_code} {self.data.reason}", "good" if self.data.ok else "bad")
+        self.logger.result("Encoding", self.data.encoding or "Unknown", "neutral")
+        return None
+    
+    def _phase_performance(self, report):
+        """Phase 2: Performance metrics."""
+        perf = self.get_performance_metrics()
+        self.logger.result("Response Time", f"{perf['response_time_ms']}ms", "good" if perf['response_time_ms'] < 1000 else "warn")
+        self.logger.result("Content Size", f"{perf['content_size_kb']}KB", "neutral")
+        self.logger.result("GZIP", "Enabled" if perf['gzip_enabled'] else "Disabled", "good" if perf['gzip_enabled'] else "warn")
+        return {"performance": perf}
+    
+    def _phase_dns(self, report):
+        """Phase 3: DNS Resolution."""
+        dns_info = self.get_dns_info()
+        return {"dns_info": dns_info}
+    
+    def _phase_ip_geo(self, report):
+        """Phase 4: IP & Geolocation."""
+        ip_info = self.get_ip_info()
+        if "ip_address" in ip_info:
+            self.logger.result("IP Address", ip_info["ip_address"], "neutral")
+        if "geolocation" in ip_info and isinstance(ip_info["geolocation"], dict):
+            geo = ip_info["geolocation"]
+            self.logger.result("Location", f"{geo.get('city', 'N/A')}, {geo.get('country', 'N/A')}", "neutral")
+            self.logger.result("ISP", geo.get('isp', 'N/A'), "neutral")
+        return {"ip_info": ip_info}
+    
+    def _phase_ssl(self, report):
+        """Phase 5: SSL/TLS Certificate."""
+        ssl_info = self.get_ssl_info()
+        if "certificate" in ssl_info:
+            cert = ssl_info["certificate"]
+            self.logger.result("Issuer", str(cert.get("issuer", {}).get("organizationName", "N/A")), "neutral")
+            if "days_until_expiry" in ssl_info:
+                days = ssl_info["days_until_expiry"]
+                status = "good" if days > 30 else ("warn" if days > 0 else "bad")
+                self.logger.result("Expires In", f"{days} days", status)
+        return {"ssl_info": ssl_info}
+    
+    def _phase_methods(self, report):
+        """Phase 6: HTTP Methods."""
+        methods = self.scan_http_methods()
+        self.logger.result("Allowed", ", ".join(methods.get("allowed_methods", [])), "neutral")
+        if methods.get("vulnerable_methods"):
+            for vm in methods["vulnerable_methods"]:
+                self.logger.result(f"⚠ {vm['method']}", vm['description'], "bad")
+        return {"http_methods": methods}
+    
+    def _phase_headers(self, report):
+        """Phase 7: Security Headers."""
+        headers = self.analyze_headers()
+        for header, info in headers.items():
+            if header != "vulnerabilities" and isinstance(info, dict):
+                status = "good" if info.get("present") else "bad"
+                value = info.get("value", "Missing")[:50] if info.get("present") else "Missing"
+                self.logger.result(header, value, status)
+        return {"security_headers": headers}
+    
+    def _phase_ports(self, report):
+        """Phase 8: Port Scan."""
+        ports = self.scan_ports()
+        if ports and not ports[0].get("error"):
+            for p in ports:
+                self.logger.result(f"Port {p['port']}", f"{p['service']} - {p['status']}", "neutral")
+        else:
+            self.logger.log("No open ports detected", "info")
+        return {"open_ports": ports}
+    
+    def _phase_tech(self, report):
+        """Phase 9: Technology Detection."""
+        tech = self.detect_technologies()
+        if tech.get("cms"):
+            self.logger.result("CMS", tech["cms"], "neutral")
+        if tech.get("javascript_libraries"):
+            self.logger.result("JavaScript", ", ".join(tech["javascript_libraries"][:5]), "neutral")
+        if tech.get("backend"):
+            backend = tech["backend"]
+            if "web_server" in backend:
+                self.logger.result("Web Server", backend["web_server"], "neutral")
+            if "language" in backend:
+                self.logger.result("Backend", backend["language"], "neutral")
+        report["content_analysis"] = self.analyze_content()
+        return {"technologies": tech}
 
 
 class WebAnalyzerModule:
@@ -707,10 +840,12 @@ class WebAnalyzerModule:
         self.name = "Web Analyzer"
         self.version = "2.0.0"
         self.proxy_manager = None
+        self.verbose = True
 
     def run(self, config, target_manager, proxy_manager=None):
         """Run the web analyzer module with its own menu."""
         self.proxy_manager = proxy_manager
+        self.verbose = config.get("verbose", True)
         while True:
             clear_screen()
             self._print_module_banner()
@@ -885,6 +1020,7 @@ class WebAnalyzerModule:
                 timeout=config["timeout"],
                 proxies=self._get_proxy(),
                 proxy_manager=self.proxy_manager,
+                verbose=config.get("verbose", True),
             )
             result = analyzer.quick_scan()
             print(f"\n{Colors.OKGREEN}[✓] Scan Complete!{Colors.ENDC}\n")
@@ -920,6 +1056,7 @@ class WebAnalyzerModule:
                 timeout=config["timeout"],
                 proxies=self._get_proxy(),
                 proxy_manager=self.proxy_manager,
+                verbose=config.get("verbose", True),
             )
             result = analyzer.get_dns_info()
             print(f"\n{Colors.OKGREEN}[✓] DNS Lookup Complete!{Colors.ENDC}\n")
@@ -942,6 +1079,7 @@ class WebAnalyzerModule:
                 timeout=config["timeout"],
                 proxies=self._get_proxy(),
                 proxy_manager=self.proxy_manager,
+                verbose=config.get("verbose", True),
             )
             result = analyzer.get_ip_info()
             print(f"\n{Colors.OKGREEN}[✓] IP Lookup Complete!{Colors.ENDC}\n")
@@ -964,6 +1102,7 @@ class WebAnalyzerModule:
                 timeout=config["timeout"],
                 proxies=self._get_proxy(),
                 proxy_manager=self.proxy_manager,
+                verbose=config.get("verbose", True),
             )
             result = analyzer.get_ssl_info()
             print(f"\n{Colors.OKGREEN}[✓] SSL Analysis Complete!{Colors.ENDC}\n")
@@ -996,6 +1135,7 @@ class WebAnalyzerModule:
                 timeout=config["timeout"],
                 proxies=self._get_proxy(),
                 proxy_manager=self.proxy_manager,
+                verbose=config.get("verbose", True),
             )
             result = analyzer.analyze_headers()
             print(f"\n{Colors.OKGREEN}[✓] Headers Analysis Complete!{Colors.ENDC}\n")
@@ -1029,6 +1169,7 @@ class WebAnalyzerModule:
                 timeout=config["timeout"],
                 proxies=self._get_proxy(),
                 proxy_manager=self.proxy_manager,
+                verbose=config.get("verbose", True),
             )
             result = analyzer.scan_http_methods()
             print(f"\n{Colors.OKGREEN}[✓] Scan Complete!{Colors.ENDC}\n")
@@ -1059,6 +1200,7 @@ class WebAnalyzerModule:
                 timeout=config["timeout"],
                 proxies=self._get_proxy(),
                 proxy_manager=self.proxy_manager,
+                verbose=config.get("verbose", True),
             )
             result = analyzer.analyze_content()
             print(f"\n{Colors.OKGREEN}[✓] Analysis Complete!{Colors.ENDC}\n")
@@ -1092,6 +1234,7 @@ class WebAnalyzerModule:
                 timeout=config["timeout"],
                 proxies=self._get_proxy(),
                 proxy_manager=self.proxy_manager,
+                verbose=config.get("verbose", True),
             )
             result = analyzer.get_performance_metrics()
             print(f"\n{Colors.OKGREEN}[✓] Analysis Complete!{Colors.ENDC}\n")
@@ -1131,6 +1274,7 @@ class WebAnalyzerModule:
                 timeout=config["timeout"],
                 proxies=self._get_proxy(),
                 proxy_manager=self.proxy_manager,
+                verbose=config.get("verbose", True),
             )
             result = analyzer.scan_ports()
             print(f"\n{Colors.OKGREEN}[✓] Scan Complete!{Colors.ENDC}\n")
@@ -1160,6 +1304,7 @@ class WebAnalyzerModule:
                 timeout=config["timeout"],
                 proxies=self._get_proxy(),
                 proxy_manager=self.proxy_manager,
+                verbose=config.get("verbose", True),
             )
             result = analyzer.detect_technologies()
             print(f"\n{Colors.OKGREEN}[✓] Detection Complete!{Colors.ENDC}\n")
@@ -1197,22 +1342,27 @@ class WebAnalyzerModule:
             ):
                 print(f"[*] Step {i}/8: {step}...")
                 time.sleep(0.2)
-            result = analyzer.full_recon_scan()
+            result = analyzer.full_recon_scan(config)
             print(f"\n{Colors.OKGREEN}[✓] Scan Complete!{Colors.ENDC}")
             self._save_results(result, config["output_file"])
-            print(
-                f"{Colors.OKCYAN}Status: {result['http_info']['status_code']} {result['http_info']['reason']}{Colors.ENDC}"
-            )
-            print(
-                f"{Colors.OKCYAN}IP: {result['ip_info'].get('ip_address', 'N/A')}{Colors.ENDC}"
-            )
+            if result.get('http_info'):
+                print(
+                    f"{Colors.OKCYAN}Status: {result['http_info']['status_code']} {result['http_info']['reason']}{Colors.ENDC}"
+                )
+            if result.get('ip_info'):
+                print(
+                    f"{Colors.OKCYAN}IP: {result['ip_info'].get('ip_address', 'N/A')}{Colors.ENDC}"
+                )
+        except KeyboardInterrupt:
+            print(f"\n{Colors.WARNING}[!] Scan interrupted - returning to menu...{Colors.ENDC}")
         except Exception as e:
             print(f"{Colors.FAIL}[✗] Error: {str(e)}{Colors.ENDC}")
         input(f"\n{Colors.WARNING}Press Enter to continue...{Colors.ENDC}")
 
     def _batch_scan(self, config, target_manager):
-        """Execute batch scan."""
+        """Execute batch scan with Ctrl+C handling."""
         print(f"\n{Colors.HEADER}═══ Batch Scan ═══{Colors.ENDC}")
+        print(f"{Colors.OKCYAN}  Note:{Colors.ENDC} Press Ctrl+C to skip current target\n")
         targets = target_manager.get_target_list()
         if not targets:
             print(f"{Colors.WARNING}[!] No targets loaded{Colors.ENDC}")
@@ -1225,33 +1375,52 @@ class WebAnalyzerModule:
         if confirm.lower() == "n":
             return
 
-        try:
-            results = []
+        results = []
+        skipped = 0
+        output_file = config.get("output_file", "cobra_scan_results.json")
+        
+        with ScanContext(config, {"batch_results": results}, output_file) as ctx:
             for i, target in enumerate(targets, 1):
-                print(f"[{i}/{len(targets)}] {target}...")
+                if ctx.check():
+                    print(f"{Colors.WARNING}[{i}/{len(targets)}] {target} - SKIPPED{Colors.ENDC}")
+                    results.append({"url": target, "skipped": True})
+                    skipped += 1
+                    ctx.reset()
+                    continue
+                
+                print(f"[{i}/{len(targets)}] {target}...", end=" ", flush=True)
                 try:
                     analyzer = WebAnalyzer(
                         target,
                         timeout=config["timeout"],
                         proxies=self._get_proxy(),
                         proxy_manager=self.proxy_manager,
+                        verbose=config.get("verbose", True),
                     )
-                    result = analyzer.full_recon_scan()
+                    result = analyzer.full_recon_scan(config)
                     results.append(result)
-                    print(f"{Colors.OKGREEN}[✓]{Colors.ENDC}")
+                    print(f"{Colors.OKGREEN}✓{Colors.ENDC}")
+                except KeyboardInterrupt:
+                    print(f"{Colors.WARNING}SKIPPED{Colors.ENDC}")
+                    results.append({"url": target, "skipped": True, "reason": "User interrupted"})
+                    skipped += 1
+                    ctx.reset()
                 except Exception as e:
-                    print(f"{Colors.FAIL}[✗]{Colors.ENDC}")
+                    print(f"{Colors.FAIL}✗{Colors.ENDC}")
                     results.append({"url": target, "error": str(e)})
-                time.sleep(0.5)
+                time.sleep(0.3)
 
-            batch_file = (
-                f"batch_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-            )
-            with open(batch_file, "w") as f:
-                json.dump(results, f, indent=2)
-            print(f"\n{Colors.OKGREEN}[✓] Saved to: {batch_file}{Colors.ENDC}")
-        except Exception as e:
-            print(f"{Colors.FAIL}[✗] Error: {str(e)}{Colors.ENDC}")
+        # Save results
+        batch_file = f"batch_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        with open(batch_file, "w") as f:
+            json.dump(results, f, indent=2)
+        
+        completed = len(targets) - skipped
+        print(f"\n{Colors.OKGREEN}[✓] Completed: {completed}/{len(targets)} targets{Colors.ENDC}")
+        if skipped > 0:
+            print(f"{Colors.WARNING}[!] Skipped: {skipped} targets{Colors.ENDC}")
+        print(f"{Colors.OKGREEN}[✓] Saved to: {batch_file}{Colors.ENDC}")
+        
         input(f"\n{Colors.WARNING}Press Enter to continue...{Colors.ENDC}")
 
     def _save_results(self, data, output_file):

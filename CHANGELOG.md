@@ -1,7 +1,34 @@
 
 ## 📝 Changelog
 
-### Version 1.6.0 (Current)
+### Version 1.7.0 (Current)
+
+- **Pretty Logging System**: New Logger class with verbose toggle
+  - ✨ New: `Logger` class in `helpers/utils.py` with multiple log levels
+  - ✨ New: Colored timestamps and status icons (✓, ✗, ⚠, 🎯, 🔓)
+  - ✨ New: Log levels: info, success, warning, error, vuln, found, test, progress, phase
+  - ✨ New: Verbose toggle via Configuration Menu (Option 4)
+  - ✨ New: `force` parameter to always show critical messages (vulnerabilities)
+
+- **Module Logging Updates**:
+  - 🔧 Updated: `PathFinder` - Progress bar, instant path discovery alerts
+  - 🔧 Updated: `SubDomainEnumerator` - DNS lookup logging, CT query progress, zone transfer status
+  - 🔧 Updated: `WebAnalyzer` - 9-phase full recon scan with detailed progress tracking
+  - 🔧 Updated: All module instantiations pass `verbose` config parameter
+
+- **Vulnerability Scanner Enhancements**:
+  - ✨ New: Auto parameter discovery from forms, URLs, and JavaScript
+  - ✨ New: Verbose-aware `_log()` method with colored output
+  - ✨ New: Real-time test progress display (e.g., "Testing 24 params × 8 payloads")
+  - ✨ New: Instant vulnerability alerts with 🔓 icon (always shown regardless of verbose)
+  - 🔧 Updated: XSS, SQLi, path traversal tests now log per-parameter progress
+  - 🔧 Updated: Security header analysis shows found/missing count in real-time
+
+- **Configuration**:
+  - ✨ New: `verbose` setting in `cobra_config.json`
+  - ✨ New: Toggle verbose mode at runtime without restart
+
+### Version 1.6.0
 
 - **Vulnerability Scanner v1.0.0**: New comprehensive security assessment module
   - ✨ New: OWASP Top 10 2021 complete coverage

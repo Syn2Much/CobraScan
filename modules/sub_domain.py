@@ -16,7 +16,7 @@ import dns.query
 from urllib.parse import urlparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from helpers.utils import Colors, clear_screen
+from helpers.utils import Colors, clear_screen, Logger, ScanContext
 
 
 class SubDomainEnumerator:
@@ -438,13 +438,15 @@ class SubDomainEnumerator:
         "arcsight",
     ]
 
-    def __init__(self, domain, timeout=5, threads=20, proxies=None, proxy_manager=None):
+    def __init__(self, domain, timeout=5, threads=20, proxies=None, proxy_manager=None, verbose=True):
         """Initialize subdomain enumerator."""
         self.domain = self._extract_domain(domain)
         self.timeout = timeout
         self.threads = threads
         self.proxies = proxies
         self.proxy_manager = proxy_manager
+        self.verbose = verbose
+        self.logger = Logger(verbose=verbose, module_name="SubDomain")
         self.resolver = dns.resolver.Resolver()
         self.resolver.timeout = timeout
         self.resolver.lifetime = timeout
@@ -478,6 +480,10 @@ class SubDomainEnumerator:
             answers = self.resolver.resolve(full_domain, "A")
             result["found"] = True
             result["ip_addresses"] = [str(rdata) for rdata in answers]
+            # Log found immediately
+            if self.verbose:
+                ips = ", ".join(result["ip_addresses"])
+                self.logger.log(f"{full_domain} → {ips}", "found")
         except dns.resolver.NXDOMAIN:
             pass
         except dns.resolver.NoAnswer:
@@ -486,6 +492,8 @@ class SubDomainEnumerator:
                 cname_answers = self.resolver.resolve(full_domain, "CNAME")
                 result["found"] = True
                 result["cname"] = str(cname_answers[0])
+                if self.verbose:
+                    self.logger.log(f"{full_domain} → CNAME: {result['cname']}", "found")
             except:
                 pass
         except dns.resolver.Timeout:
@@ -496,37 +504,64 @@ class SubDomainEnumerator:
         return result
 
     def dns_bruteforce(self, wordlist=None, callback=None):
-        """Brute-force subdomains using DNS resolution."""
+        """Brute-force subdomains using DNS resolution with Ctrl+C support."""
         if wordlist is None:
             wordlist = self.COMMON_SUBDOMAINS
 
         results = []
         found = []
         total = len(wordlist)
+        interrupted = False
+        
+        self.logger.log(f"Starting DNS brute-force on {self.domain}", "info")
+        self.logger.log(f"Testing {total} subdomains with {self.threads} threads", "info")
+        self.logger.log("Press Ctrl+C to stop scan early", "info")
+        self.logger.newline()
 
-        with ThreadPoolExecutor(max_workers=self.threads) as executor:
-            futures = {
-                executor.submit(self._resolve_subdomain, sub): sub for sub in wordlist
-            }
-            for i, future in enumerate(as_completed(futures), 1):
-                result = future.result()
-                results.append(result)
-                if result["found"]:
-                    found.append(result)
-                if callback:
-                    callback(i, total, result)
+        try:
+            with ThreadPoolExecutor(max_workers=self.threads) as executor:
+                futures = {
+                    executor.submit(self._resolve_subdomain, sub): sub for sub in wordlist
+                }
+                for i, future in enumerate(as_completed(futures), 1):
+                    try:
+                        result = future.result()
+                        results.append(result)
+                        if result["found"]:
+                            found.append(result)
+                        if callback:
+                            callback(i, total, result)
+                        # Progress update
+                        if self.verbose and i % 10 == 0:
+                            self.logger.progress_bar(i, total, f"({len(found)} found)")
+                    except KeyboardInterrupt:
+                        interrupted = True
+                        break
+        except KeyboardInterrupt:
+            interrupted = True
+            self.logger.newline()
+            self.logger.log("Scan interrupted by user", "warning")
+        
+        self.logger.newline()
+        if interrupted:
+            self.logger.log(f"Scan stopped early: {len(found)} subdomains found from {len(results)} checked", "warning")
+        else:
+            self.logger.log(f"DNS brute-force complete: {len(found)} subdomains found", "success")
 
-        return {"all_results": results, "found": found, "total_checked": total}
+        return {"all_results": results, "found": found, "total_checked": len(results), "interrupted": interrupted}
 
     def dns_bruteforce_deep(self, callback=None):
         """Deep brute-force with extended wordlist."""
+        self.logger.log("Starting deep enumeration with extended wordlist", "info")
         return self.dns_bruteforce(wordlist=self.EXTENDED_SUBDOMAINS, callback=callback)
 
     def certificate_transparency(self):
         """Query Certificate Transparency logs via crt.sh."""
+        self.logger.log("Querying Certificate Transparency logs (crt.sh)...", "info")
         subdomains = set()
         try:
             url = f"https://crt.sh/?q=%.{self.domain}&output=json"
+            self.logger.log(f"Fetching: {url}", "test")
             response = request_with_rotation(
                 "GET",
                 url,
@@ -535,6 +570,7 @@ class SubDomainEnumerator:
             )
             if response.status_code == 200:
                 data = response.json()
+                self.logger.log(f"Processing {len(data)} certificate entries...", "info")
                 for entry in data:
                     name = entry.get("name_value", "")
                     # Split on newlines (crt.sh returns multiple names per entry)
@@ -542,6 +578,15 @@ class SubDomainEnumerator:
                         sub = sub.strip().lower()
                         if sub.endswith(self.domain) and "*" not in sub:
                             subdomains.add(sub)
+                
+                self.logger.log(f"Found {len(subdomains)} unique subdomains from CT logs", "success")
+                for sub in list(subdomains)[:10]:
+                    self.logger.log(f"  {sub}", "found")
+                if len(subdomains) > 10:
+                    self.logger.log(f"  ... and {len(subdomains) - 10} more", "info")
+            else:
+                self.logger.log(f"crt.sh returned status {response.status_code}", "warning")
+                
             return {
                 "source": "crt.sh",
                 "found": list(subdomains),
@@ -549,18 +594,25 @@ class SubDomainEnumerator:
                 "proxy_used": getattr(response, "_used_proxy", None) or "DIRECT",
             }
         except Exception as e:
+            self.logger.log(f"CT lookup failed: {e}", "error")
             return {"source": "crt.sh", "error": str(e), "found": [], "count": 0}
 
     def zone_transfer(self):
         """Attempt DNS zone transfer (AXFR)."""
+        self.logger.log("Attempting DNS Zone Transfer (AXFR)...", "info")
         subdomains = []
         ns_servers = []
 
         try:
             # Get nameservers
+            self.logger.log("Retrieving nameservers...", "test")
             ns_records = self.resolver.resolve(self.domain, "NS")
             ns_servers = [str(ns).rstrip(".") for ns in ns_records]
+            self.logger.log(f"Found {len(ns_servers)} nameservers", "info")
+            for ns in ns_servers:
+                self.logger.log(f"  NS: {ns}", "info")
         except Exception as e:
+            self.logger.log(f"Failed to get NS records: {e}", "error")
             return {
                 "source": "zone_transfer",
                 "error": f"Failed to get NS records: {e}",
@@ -570,6 +622,7 @@ class SubDomainEnumerator:
 
         for ns in ns_servers:
             try:
+                self.logger.log(f"Attempting AXFR on {ns}...", "test")
                 # Attempt zone transfer
                 zone = dns.zone.from_xfr(dns.query.xfr(ns, self.domain, timeout=10))
                 for name, node in zone.nodes.items():
@@ -577,6 +630,14 @@ class SubDomainEnumerator:
                     if subdomain != "@":
                         full_domain = f"{subdomain}.{self.domain}"
                         subdomains.append(full_domain)
+                
+                self.logger.log(f"ZONE TRANSFER SUCCESSFUL on {ns}!", "vuln")
+                self.logger.log(f"Extracted {len(subdomains)} records", "success")
+                for sub in subdomains[:10]:
+                    self.logger.log(f"  {sub}", "found")
+                if len(subdomains) > 10:
+                    self.logger.log(f"  ... and {len(subdomains) - 10} more", "info")
+                
                 return {
                     "source": "zone_transfer",
                     "vulnerable_ns": ns,
@@ -585,8 +646,10 @@ class SubDomainEnumerator:
                     "count": len(subdomains),
                 }
             except Exception:
+                self.logger.log(f"  {ns}: Transfer denied (secure)", "info")
                 continue
 
+        self.logger.log("No vulnerable nameservers found (good!)", "success")
         return {
             "source": "zone_transfer",
             "vulnerable": False,
@@ -597,30 +660,41 @@ class SubDomainEnumerator:
 
     def reverse_dns_range(self, ip_range=None, callback=None):
         """Perform reverse DNS lookups on IP range."""
+        self.logger.log("Starting reverse DNS scan...", "info")
+        
         if ip_range is None:
             # Try to get IP of main domain and scan nearby
             try:
                 main_ip = socket.gethostbyname(self.domain)
+                self.logger.log(f"Main domain resolves to: {main_ip}", "info")
                 # Parse IP and create range (scan /24)
                 parts = main_ip.split(".")
                 base = ".".join(parts[:3])
                 ip_range = [f"{base}.{i}" for i in range(1, 255)]
+                self.logger.log(f"Scanning /24 range: {base}.1-254", "info")
             except Exception as e:
+                self.logger.log(f"Failed to resolve domain: {e}", "error")
                 return {"source": "reverse_dns", "error": str(e), "found": []}
 
         found = []
         total = len(ip_range)
+        self.logger.newline()
 
         for i, ip in enumerate(ip_range, 1):
             try:
                 hostname = socket.gethostbyaddr(ip)[0]
                 if self.domain in hostname:
                     found.append({"ip": ip, "hostname": hostname})
+                    self.logger.log(f"{ip} → {hostname}", "found")
             except:
                 pass
             if callback:
                 callback(i, total, {"ip": ip, "found": len(found)})
+            if self.verbose and i % 20 == 0:
+                self.logger.progress_bar(i, total, f"({len(found)} found)")
 
+        self.logger.newline()
+        self.logger.log(f"Reverse DNS complete: {len(found)} hosts found", "success")
         return {
             "source": "reverse_dns",
             "found": found,
@@ -686,10 +760,12 @@ class SubDomainModule:
             "Discovers subdomains using DNS, certificate transparency, and more"
         )
         self.proxy_manager = None
+        self.verbose = True
 
     def run(self, config, target_manager, proxy_manager=None):
         """Main entry point for the module."""
         self.proxy_manager = proxy_manager
+        self.verbose = config.get("verbose", True)
         while True:
             clear_screen()
             self._print_module_banner()
@@ -931,8 +1007,9 @@ class SubDomainModule:
                 timeout=config["timeout"],
                 proxies=self._get_proxy(),
                 proxy_manager=self.proxy_manager,
+                verbose=config.get("verbose", True),
             )
-            results = enumerator.dns_bruteforce(callback=self._print_progress)
+            results = enumerator.dns_bruteforce(callback=self._print_progress if not config.get("verbose", True) else None)
             found = self._display_results(results, "Quick Enumeration")
 
             if config.get("auto_save") and found:
@@ -971,8 +1048,9 @@ class SubDomainModule:
                 timeout=config["timeout"],
                 proxies=self._get_proxy(),
                 proxy_manager=self.proxy_manager,
+                verbose=config.get("verbose", True),
             )
-            results = enumerator.dns_bruteforce_deep(callback=self._print_progress)
+            results = enumerator.dns_bruteforce_deep(callback=self._print_progress if not config.get("verbose", True) else None)
             found = self._display_results(results, "Deep Enumeration")
 
             if config.get("auto_save") and found:
@@ -1009,6 +1087,7 @@ class SubDomainModule:
                 timeout=30,
                 proxies=self._get_proxy(),
                 proxy_manager=self.proxy_manager,
+                verbose=config.get("verbose", True),
             )
             results = enumerator.certificate_transparency()
 
@@ -1070,6 +1149,7 @@ class SubDomainModule:
                 timeout=config["timeout"],
                 proxies=self._get_proxy(),
                 proxy_manager=self.proxy_manager,
+                verbose=config.get("verbose", True),
             )
             results = enumerator.zone_transfer()
 
@@ -1134,21 +1214,23 @@ class SubDomainModule:
                 timeout=config["timeout"],
                 proxies=self._get_proxy(),
                 proxy_manager=self.proxy_manager,
+                verbose=config.get("verbose", True),
             )
 
             def rdns_callback(current, total, result):
-                percentage = (current / total) * 100
-                bar_length = 30
-                filled = int(bar_length * current / total)
-                bar = "=" * filled + "-" * (bar_length - filled)
-                found_count = result.get("found", 0)
-                print(
-                    f"\r{Colors.OKCYAN}[{bar}] {percentage:.0f}% ({current}/{total}) Found: {found_count}{Colors.ENDC}",
-                    end="",
-                    flush=True,
-                )
+                if not config.get("verbose", True):
+                    percentage = (current / total) * 100
+                    bar_length = 30
+                    filled = int(bar_length * current / total)
+                    bar = "=" * filled + "-" * (bar_length - filled)
+                    found_count = result.get("found", 0)
+                    print(
+                        f"\r{Colors.OKCYAN}[{bar}] {percentage:.0f}% ({current}/{total}) Found: {found_count}{Colors.ENDC}",
+                        end="",
+                        flush=True,
+                    )
 
-            results = enumerator.reverse_dns_range(callback=rdns_callback)
+            results = enumerator.reverse_dns_range(callback=rdns_callback if not config.get("verbose", True) else None)
 
             print(f"\n\n{Colors.HEADER}{'=' * 60}{Colors.ENDC}")
             print(f"{Colors.OKGREEN}[+] Reverse DNS Results{Colors.ENDC}")

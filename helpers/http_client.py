@@ -4,6 +4,10 @@ HTTP Client Helper
 Rotation-aware HTTP requests using ProxyManager
 """
 
+import urllib3
+
+urllib3.disable_warnings()
+
 import requests
 from requests.exceptions import (
     RequestException,
@@ -25,21 +29,27 @@ def request_with_rotation(
     params=None,
     data=None,
     json=None,
+    max_retries=10,
 ):
-    """Perform an HTTP request with fast proxy rotation.
+    """Perform an HTTP request with proxy rotation.
 
-    - Tries available proxies quickly (min(timeout, 5s)) until one succeeds.
-    - Marks failed proxies and rotates to the next.
-    - Falls back to a direct connection once if all proxies fail.
+    - When proxies are loaded, ONLY uses proxies (no direct IP fallback)
+    - Keeps retrying different proxies (supports rotating proxies)
+    - Only falls back to direct connection if NO proxies are loaded
     """
     proxy_timeout = min(timeout or 10, 5)
     last_error = None
 
     proxies_available = proxy_manager.is_loaded() if proxy_manager else False
-    max_attempts = (proxy_manager.get_count() if proxies_available else 1) * 2 or 1
 
     if proxies_available:
-        for _ in range(max_attempts):
+        # When proxies are enabled, NEVER fall back to direct IP
+        # Keep trying proxies (could be rotating proxy that needs retries)
+        proxy_count = proxy_manager.get_count()
+        # More attempts for single proxy (could be rotating), fewer for multiple
+        attempts = max_retries if proxy_count == 1 else proxy_count * 3
+
+        for attempt in range(attempts):
             proxy_dict = proxy_manager.get_proxy()
             try:
                 resp = requests.request(
@@ -78,7 +88,10 @@ def request_with_rotation(
                     proxy_manager.get_next_proxy()
                 continue
 
-    # Fallback direct request
+        # All proxy attempts failed - do NOT fall back to direct IP
+        raise Exception(f"All proxy attempts failed for {url}: {last_error}")
+
+    # Only use direct request when NO proxies are loaded
     try:
         resp = requests.request(
             method,
@@ -93,7 +106,6 @@ def request_with_rotation(
             json=json,
         )
         resp.raise_for_status()
-        # Direct connection (no proxy)
         resp._used_proxy = None
         return resp
     except RequestException as e:

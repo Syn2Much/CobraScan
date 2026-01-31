@@ -18,7 +18,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 from requests.exceptions import RequestException, Timeout
 
-from helpers.utils import Colors, clear_screen
+from helpers.utils import Colors, clear_screen, ScanContext
 from helpers.http_client import request_with_rotation
 
 
@@ -214,11 +214,12 @@ class VulnerabilityScanner:
         },
     }
 
-    def __init__(self, url: str, timeout: int = 10, proxy_manager=None):
+    def __init__(self, url: str, timeout: int = 10, proxy_manager=None, verbose: bool = True):
         self.url = self._normalize_url(url)
         self.hostname = self._extract_hostname(url)
         self.timeout = timeout
         self.proxy_manager = proxy_manager
+        self.verbose = verbose
         self.findings: List[Dict[str, Any]] = []
 
     def _normalize_url(self, url: str) -> str:
@@ -236,11 +237,13 @@ class VulnerabilityScanner:
         """Make HTTP request with proxy rotation support."""
         try:
             timeout = kwargs.pop("timeout", self.timeout)
+            verify = kwargs.pop("verify", False)  # Disable SSL verification by default
+            
             if self.proxy_manager and self.proxy_manager.is_loaded():
                 return request_with_rotation(
-                    method, url, self.proxy_manager, timeout=timeout, **kwargs
+                    method, url, proxy_manager=self.proxy_manager, timeout=timeout, verify=verify, **kwargs
                 )
-            return requests.request(method, url, timeout=timeout, **kwargs)
+            return requests.request(method, url, timeout=timeout, verify=verify, **kwargs)
         except Exception:
             return None
 
@@ -276,32 +279,34 @@ class VulnerabilityScanner:
         """Check for missing security headers (OWASP A05)."""
         results = {"headers_checked": 0, "missing": [], "present": [], "issues": []}
 
+        self._log("Fetching response headers...")
+
         try:
             resp = self._request("GET", self.url)
             if not resp:
+                self._log("Failed to fetch headers", "error")
                 return results
 
             headers = {k.lower(): v for k, v in resp.headers.items()}
+            self._log(f"Received {len(headers)} headers, analyzing...")
 
             for header, info in self.SECURITY_HEADERS.items():
                 results["headers_checked"] += 1
                 header_lower = header.lower()
 
                 if header_lower in headers:
-                    results["present"].append(
-                        {
-                            "header": header,
-                            "value": headers[header_lower][:100],
-                        }
-                    )
+                    results["present"].append({
+                        "header": header,
+                        "value": headers[header_lower][:100],
+                    })
+                    self._log(f"✓ {header}: {headers[header_lower][:50]}", "success")
                 else:
-                    results["missing"].append(
-                        {
-                            "header": header,
-                            "severity": info["missing_severity"],
-                            "description": info["desc"],
-                        }
-                    )
+                    results["missing"].append({
+                        "header": header,
+                        "severity": info["missing_severity"],
+                        "description": info["desc"],
+                    })
+                    self._log(f"✗ Missing: {header} ({info['missing_severity']})", "warning")
                     self._add_finding(
                         category="Security Headers",
                         title=f"Missing {header}",
@@ -320,13 +325,12 @@ class VulnerabilityScanner:
             ]
             for h in disclosure_headers:
                 if h.lower() in headers:
-                    results["issues"].append(
-                        {
-                            "header": h,
-                            "value": headers[h.lower()],
-                            "issue": "Information Disclosure",
-                        }
-                    )
+                    results["issues"].append({
+                        "header": h,
+                        "value": headers[h.lower()],
+                        "issue": "Information Disclosure",
+                    })
+                    self._log(f"⚠ Info leak: {h}: {headers[h.lower()]}", "warning")
                     self._add_finding(
                         category="Information Disclosure",
                         title=f"{h} Header Exposes Server Info",
@@ -339,6 +343,7 @@ class VulnerabilityScanner:
 
         except Exception as e:
             results["error"] = str(e)
+            self._log(f"Error: {str(e)}", "error")
 
         return results
 
@@ -346,9 +351,12 @@ class VulnerabilityScanner:
         """Detect vulnerable software versions (OWASP A06)."""
         results = {"versions_found": [], "vulnerabilities": []}
 
+        self._log("Analyzing server headers and page content for version info...")
+
         try:
             resp = self._request("GET", self.url)
             if not resp:
+                self._log("Failed to fetch page", "error")
                 return results
 
             # Check headers
@@ -356,24 +364,22 @@ class VulnerabilityScanner:
             for header in headers_to_check:
                 if header in resp.headers:
                     version_str = resp.headers[header]
-                    results["versions_found"].append(
-                        {
-                            "source": f"Header: {header}",
-                            "value": version_str,
-                        }
-                    )
+                    results["versions_found"].append({
+                        "source": f"Header: {header}",
+                        "value": version_str,
+                    })
+                    self._log(f"Found {header}: {version_str}")
 
                     # Check against known vulnerabilities
                     for pattern, vuln_info in self.VULNERABLE_SIGNATURES.items():
                         if pattern.lower() in version_str.lower():
-                            results["vulnerabilities"].append(
-                                {
-                                    "component": version_str,
-                                    "cve": vuln_info["cve"],
-                                    "severity": vuln_info["severity"],
-                                    "description": vuln_info["desc"],
-                                }
-                            )
+                            results["vulnerabilities"].append({
+                                "component": version_str,
+                                "cve": vuln_info["cve"],
+                                "severity": vuln_info["severity"],
+                                "description": vuln_info["desc"],
+                            })
+                            self._log(f"VULNERABLE: {pattern} - {vuln_info['cve']}", "vuln")
                             self._add_finding(
                                 category="Vulnerable Component",
                                 title=f"Vulnerable {pattern} Detected",
@@ -386,27 +392,26 @@ class VulnerabilityScanner:
                             )
 
             # Check page content for version strings
+            self._log("Scanning page content for JavaScript libraries...")
             content = resp.text[:50000]  # Limit content check
 
             # jQuery version detection
             jquery_match = re.search(r"jquery[/-]?(\d+\.\d+\.?\d*)", content, re.I)
             if jquery_match:
                 version = jquery_match.group(1)
-                results["versions_found"].append(
-                    {
-                        "source": "JavaScript",
-                        "value": f"jQuery {version}",
-                    }
-                )
+                results["versions_found"].append({
+                    "source": "JavaScript",
+                    "value": f"jQuery {version}",
+                })
+                self._log(f"Found jQuery version: {version}")
                 if version.startswith(("1.", "2.", "3.0", "3.1", "3.2", "3.3", "3.4")):
-                    results["vulnerabilities"].append(
-                        {
-                            "component": f"jQuery {version}",
-                            "cve": "CVE-2020-11022/CVE-2020-11023",
-                            "severity": "MEDIUM",
-                            "description": "XSS vulnerability in jQuery",
-                        }
-                    )
+                    results["vulnerabilities"].append({
+                        "component": f"jQuery {version}",
+                        "cve": "CVE-2020-11022/CVE-2020-11023",
+                        "severity": "MEDIUM",
+                        "description": "XSS vulnerability in jQuery",
+                    })
+                    self._log(f"VULNERABLE: jQuery {version} - CVE-2020-11022", "vuln")
                     self._add_finding(
                         category="Vulnerable Component",
                         title=f"Vulnerable jQuery {version}",
@@ -421,66 +426,127 @@ class VulnerabilityScanner:
             # WordPress version
             wp_match = re.search(r"WordPress\s+(\d+\.\d+\.?\d*)", content, re.I)
             if wp_match:
-                results["versions_found"].append(
-                    {
-                        "source": "CMS",
-                        "value": f"WordPress {wp_match.group(1)}",
-                    }
-                )
+                results["versions_found"].append({
+                    "source": "CMS",
+                    "value": f"WordPress {wp_match.group(1)}",
+                })
+                self._log(f"Found WordPress version: {wp_match.group(1)}")
 
             # Generator meta tag
             gen_match = re.search(
                 r'<meta[^>]+generator[^>]+content=["\']([^"\']+)', content, re.I
             )
             if gen_match:
-                results["versions_found"].append(
-                    {
-                        "source": "Meta Generator",
-                        "value": gen_match.group(1),
-                    }
-                )
+                results["versions_found"].append({
+                    "source": "Meta Generator",
+                    "value": gen_match.group(1),
+                })
+                self._log(f"Found generator: {gen_match.group(1)}")
+
+            if not results["versions_found"]:
+                self._log("No version information found", "info")
 
         except Exception as e:
             results["error"] = str(e)
+            self._log(f"Error: {str(e)}", "error")
 
         return results
+
+    def _discover_parameters(self) -> List[str]:
+        """Crawl the page to discover actual parameters used."""
+        discovered = set()
+        
+        # Common params to always test
+        common_params = [
+            "q", "search", "query", "s", "keyword", "id", "name", "page", 
+            "url", "redirect", "next", "return", "file", "path", "cat",
+            "category", "product", "item", "user", "action", "view", "lang"
+        ]
+        discovered.update(common_params)
+        
+        try:
+            resp = self._request("GET", self.url)
+            if resp:
+                content = resp.text
+                
+                # Extract params from forms
+                form_inputs = re.findall(r'<input[^>]+name=["\']([^"\']+)["\']', content, re.I)
+                discovered.update(form_inputs)
+                
+                # Extract params from links
+                href_params = re.findall(r'\?([^=]+)=', content)
+                discovered.update(href_params)
+                
+                # Extract params from JavaScript
+                js_params = re.findall(r'["\']([a-zA-Z_][a-zA-Z0-9_]{1,20})["\']\s*:', content)
+                discovered.update(js_params[:20])  # Limit JS params
+                
+        except Exception:
+            pass
+        
+        return list(discovered)[:30]  # Limit total params
+
+    def _log(self, message: str, level: str = "info", end: str = "\n", force: bool = False):
+        """Print formatted log message. Only prints if verbose is True or force is True."""
+        if not self.verbose and not force:
+            return
+        
+        timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+        if level == "info":
+            print(f"    {Colors.OKCYAN}[{timestamp}]{Colors.ENDC} {message}", end=end, flush=True)
+        elif level == "success":
+            print(f"    {Colors.OKGREEN}[{timestamp}] ✓{Colors.ENDC} {message}", end=end, flush=True)
+        elif level == "warning":
+            print(f"    {Colors.WARNING}[{timestamp}] ⚠{Colors.ENDC} {message}", end=end, flush=True)
+        elif level == "error":
+            print(f"    {Colors.FAIL}[{timestamp}] ✗{Colors.ENDC} {message}", end=end, flush=True)
+        elif level == "vuln":
+            # Always show vulnerabilities even if not verbose
+            print(f"    {Colors.FAIL}[{timestamp}] 🔓 VULN:{Colors.ENDC} {message}", end=end, flush=True)
+        elif level == "test":
+            print(f"    {Colors.HEADER}[{timestamp}]{Colors.ENDC} {message}", end=end, flush=True)
+        elif level == "progress":
+            print(f"\r    {Colors.OKCYAN}[{timestamp}]{Colors.ENDC} {message}", end="", flush=True)
 
     def scan_xss_reflected(self, params: List[str] = None) -> Dict[str, Any]:
         """Test for reflected XSS vulnerabilities (OWASP A03)."""
         results = {"tests_run": 0, "vulnerable_params": [], "safe_params": []}
 
-        # If no params provided, try to find them
+        # Discover actual parameters if none provided
         if not params:
-            params = [
-                "q",
-                "search",
-                "query",
-                "s",
-                "keyword",
-                "id",
-                "name",
-                "page",
-                "url",
-                "redirect",
-                "next",
-                "return",
-            ]
+            params = self._discover_parameters()
 
-        for param in params:
-            for payload in self.XSS_PAYLOADS[:5]:  # Limit payloads for speed
+        # Use more payloads for thorough testing
+        payloads_to_test = self.XSS_PAYLOADS
+        total_tests = len(params) * len(payloads_to_test)
+        
+        self._log(f"Testing {len(params)} parameters × {len(payloads_to_test)} payloads = {total_tests} tests")
+
+        tested_params = set()
+        vulns_found = 0
+        
+        for i, param in enumerate(params):
+            param_vulnerable = False
+            for j, payload in enumerate(payloads_to_test):
                 results["tests_run"] += 1
                 test_url = f"{self.url}?{param}={quote(payload)}"
+                
+                # Progress update
+                progress = (i * len(payloads_to_test) + j + 1) / total_tests * 100
+                payload_short = payload[:25] + "..." if len(payload) > 25 else payload
+                self._log(f"XSS [{progress:5.1f}%] param={param:<15} payload={payload_short}", "progress")
 
                 try:
+                    time.sleep(0.05)
+                    
                     resp = self._request("GET", test_url, allow_redirects=False)
                     if resp and payload in resp.text:
-                        results["vulnerable_params"].append(
-                            {
-                                "parameter": param,
-                                "payload": payload,
-                                "reflected": True,
-                            }
-                        )
+                        results["vulnerable_params"].append({
+                            "parameter": param,
+                            "payload": payload,
+                            "reflected": True,
+                            "url": test_url
+                        })
                         self._add_finding(
                             category="Cross-Site Scripting",
                             title=f"Reflected XSS in '{param}' parameter",
@@ -490,10 +556,20 @@ class VulnerabilityScanner:
                             owasp="A03",
                             remediation="Implement proper input validation and output encoding",
                         )
-                        break  # Found vuln, move to next param
+                        vulns_found += 1
+                        print()  # New line after progress
+                        self._log(f"XSS FOUND in '{param}' with payload: {payload_short}", "vuln")
+                        param_vulnerable = True
+                        break
                 except Exception:
                     continue
-
+            
+            if not param_vulnerable:
+                tested_params.add(param)
+        
+        print()  # Clear progress line
+        self._log(f"XSS scan complete: {vulns_found} vulnerabilities found", "success" if vulns_found == 0 else "warning")
+        results["safe_params"] = list(tested_params)
         return results
 
     def scan_sql_injection(self, params: List[str] = None) -> Dict[str, Any]:
@@ -516,27 +592,36 @@ class VulnerabilityScanner:
             r"Unclosed quotation mark",
             r"SQLSTATE\[",
             r"syntax error.*SQL",
+            r"mysql_fetch",
+            r"num_rows",
+            r"mysqli_",
+            r"pg_query",
+            r"pg_exec",
         ]
 
+        # Discover actual parameters
         if not params:
-            params = [
-                "id",
-                "page",
-                "cat",
-                "category",
-                "product",
-                "item",
-                "user",
-                "order",
-                "sort",
-            ]
+            params = self._discover_parameters()
 
-        for param in params:
-            for payload in self.SQLI_PAYLOADS[:5]:
+        total_tests = len(params) * len(self.SQLI_PAYLOADS)
+        self._log(f"Testing {len(params)} parameters × {len(self.SQLI_PAYLOADS)} payloads = {total_tests} tests")
+        
+        vulns_found = 0
+
+        # Test all SQL payloads
+        for i, param in enumerate(params):
+            for j, payload in enumerate(self.SQLI_PAYLOADS):
                 results["tests_run"] += 1
                 test_url = f"{self.url}?{param}={quote(payload)}"
+                
+                # Progress update
+                progress = (i * len(self.SQLI_PAYLOADS) + j + 1) / total_tests * 100
+                payload_short = payload[:20] + "..." if len(payload) > 20 else payload
+                self._log(f"SQLi [{progress:5.1f}%] param={param:<15} payload={payload_short}", "progress")
 
                 try:
+                    time.sleep(0.05)
+                    
                     resp = self._request("GET", test_url)
                     if not resp:
                         continue
@@ -544,72 +629,83 @@ class VulnerabilityScanner:
                     content = resp.text
                     for pattern in sql_error_patterns:
                         if re.search(pattern, content, re.I):
-                            results["errors_found"].append(
-                                {
-                                    "parameter": param,
-                                    "payload": payload,
-                                    "error_pattern": pattern,
-                                }
-                            )
+                            results["errors_found"].append({
+                                "parameter": param,
+                                "payload": payload,
+                                "error_pattern": pattern,
+                                "url": test_url
+                            })
                             self._add_finding(
                                 category="SQL Injection",
                                 title=f"Potential SQLi in '{param}' parameter",
                                 severity="CRITICAL",
                                 description="SQL error message detected, indicating potential SQL injection",
-                                evidence=f"Parameter: {param}, Error pattern: {pattern}",
+                                evidence=f"Parameter: {param}, Payload: {payload}, Pattern: {pattern}",
                                 owasp="A03",
                                 remediation="Use parameterized queries/prepared statements",
                             )
+                            vulns_found += 1
+                            print()
+                            self._log(f"SQLi FOUND in '{param}' - Error pattern: {pattern[:30]}", "vuln")
                             break
                 except Exception:
                     continue
 
+        print()
+        self._log(f"SQLi scan complete: {vulns_found} vulnerabilities found", "success" if vulns_found == 0 else "warning")
         return results
 
     def scan_directory_traversal(self) -> Dict[str, Any]:
         """Test for directory traversal/LFI vulnerabilities (OWASP A01)."""
         results = {"tests_run": 0, "vulnerabilities": []}
 
-        # Common parameters that might be vulnerable
-        params = [
-            "file",
-            "path",
-            "page",
-            "include",
-            "template",
-            "doc",
-            "folder",
-            "pg",
-            "style",
-            "lang",
+        # Discover actual parameters + common vulnerable ones
+        params = self._discover_parameters()
+        lfi_params = [
+            "file", "path", "page", "include", "template", "doc", "folder", 
+            "pg", "style", "lang", "document", "root", "dir", "conf"
         ]
+        params = list(set(params + lfi_params))
 
         # Indicators of successful traversal
         success_patterns = [
-            "root:x:0:0",  # /etc/passwd
-            "[extensions]",  # win.ini
-            "\\[boot loader\\]",  # boot.ini
+            r"root:.*:0:0",  # /etc/passwd
+            r"\[extensions\]",  # win.ini
+            r"\[boot loader\]",  # boot.ini
+            r"daemon:.*:/",  # /etc/passwd
+            r"www-data:",  # /etc/passwd
+            r"\[fonts\]",  # win.ini
         ]
 
-        for param in params:
-            for payload in self.LFI_PAYLOADS[:4]:
+        total_tests = len(params) * len(self.LFI_PAYLOADS)
+        self._log(f"Testing {len(params)} parameters × {len(self.LFI_PAYLOADS)} payloads = {total_tests} tests")
+        
+        vulns_found = 0
+
+        for i, param in enumerate(params):
+            for j, payload in enumerate(self.LFI_PAYLOADS):
                 results["tests_run"] += 1
                 test_url = f"{self.url}?{param}={quote(payload)}"
+                
+                progress = (i * len(self.LFI_PAYLOADS) + j + 1) / total_tests * 100
+                payload_short = payload[:25] + "..." if len(payload) > 25 else payload
+                self._log(f"LFI  [{progress:5.1f}%] param={param:<15} payload={payload_short}", "progress")
 
                 try:
+                    time.sleep(0.05)
+                    
                     resp = self._request("GET", test_url)
                     if not resp:
                         continue
 
                     for pattern in success_patterns:
                         if re.search(pattern, resp.text, re.I):
-                            results["vulnerabilities"].append(
-                                {
-                                    "parameter": param,
-                                    "payload": payload,
-                                    "evidence": pattern,
-                                }
-                            )
+                            results["vulnerabilities"].append({
+                                "parameter": param,
+                                "payload": payload,
+                                "evidence": pattern,
+                                "url": test_url
+                            })
                             self._add_finding(
                                 category="Path Traversal",
                                 title=f"LFI/Directory Traversal in '{param}'",
@@ -619,35 +715,46 @@ class VulnerabilityScanner:
                                 owasp="A01",
                                 remediation="Validate and sanitize file paths, use allowlists",
                             )
+                            vulns_found += 1
+                            print()
+                            self._log(f"LFI FOUND in '{param}' - File content detected!", "vuln")
                             break
                 except Exception:
                     continue
 
+        print()
+        self._log(f"LFI scan complete: {vulns_found} vulnerabilities found", "success" if vulns_found == 0 else "warning")
         return results
 
     def scan_open_redirect(self) -> Dict[str, Any]:
         """Test for open redirect vulnerabilities (OWASP A01)."""
         results = {"tests_run": 0, "vulnerabilities": []}
 
-        params = [
-            "url",
-            "redirect",
-            "next",
-            "return",
-            "returnUrl",
-            "goto",
-            "destination",
-            "redir",
-            "redirect_uri",
-            "continue",
+        # Discover actual parameters + common redirect params
+        params = self._discover_parameters()
+        redirect_params = [
+            "url", "redirect", "next", "return", "returnUrl", "goto", 
+            "destination", "redir", "redirect_uri", "continue", "target",
+            "link", "forward", "out", "view", "return_to", "checkout_url"
         ]
+        params = list(set(params + redirect_params))
 
-        for param in params:
-            for payload in self.REDIRECT_PAYLOADS:
+        total_tests = len(params) * len(self.REDIRECT_PAYLOADS)
+        self._log(f"Testing {len(params)} parameters × {len(self.REDIRECT_PAYLOADS)} payloads = {total_tests} tests")
+        
+        vulns_found = 0
+
+        for i, param in enumerate(params):
+            for j, payload in enumerate(self.REDIRECT_PAYLOADS):
                 results["tests_run"] += 1
                 test_url = f"{self.url}?{param}={quote(payload)}"
+                
+                progress = (i * len(self.REDIRECT_PAYLOADS) + j + 1) / total_tests * 100
+                self._log(f"Redirect [{progress:5.1f}%] param={param:<15} payload={payload}", "progress")
 
                 try:
+                    time.sleep(0.05)
+                    
                     resp = self._request("GET", test_url, allow_redirects=False)
                     if not resp:
                         continue
@@ -656,13 +763,12 @@ class VulnerabilityScanner:
                     if resp.status_code in (301, 302, 303, 307, 308):
                         location = resp.headers.get("Location", "")
                         if "evil.com" in location or location.startswith("//"):
-                            results["vulnerabilities"].append(
-                                {
-                                    "parameter": param,
-                                    "payload": payload,
-                                    "redirect_location": location,
-                                }
-                            )
+                            results["vulnerabilities"].append({
+                                "parameter": param,
+                                "payload": payload,
+                                "redirect_location": location,
+                                "url": test_url
+                            })
                             self._add_finding(
                                 category="Open Redirect",
                                 title=f"Open Redirect via '{param}' parameter",
@@ -672,10 +778,15 @@ class VulnerabilityScanner:
                                 owasp="A01",
                                 remediation="Validate redirect URLs against an allowlist",
                             )
+                            vulns_found += 1
+                            print()
+                            self._log(f"Open Redirect FOUND in '{param}' → {location}", "vuln")
                             break
                 except Exception:
                     continue
 
+        print()
+        self._log(f"Open Redirect scan complete: {vulns_found} vulnerabilities found", "success" if vulns_found == 0 else "warning")
         return results
 
     def scan_sensitive_files(self) -> Dict[str, Any]:
@@ -718,10 +829,17 @@ class VulnerabilityScanner:
         ]
 
         base_url = self.url.rstrip("/")
+        total_files = len(sensitive_files)
+        self._log(f"Checking {total_files} sensitive file paths")
+        
+        exposed_count = 0
 
-        for path, description in sensitive_files:
+        for i, (path, description) in enumerate(sensitive_files):
             results["files_checked"] += 1
             test_url = f"{base_url}{path}"
+            
+            progress = (i + 1) / total_files * 100
+            self._log(f"Files [{progress:5.1f}%] Checking: {path}", "progress")
 
             try:
                 resp = self._request("GET", test_url)
@@ -754,14 +872,12 @@ class VulnerabilityScanner:
                             else "MEDIUM"
                         )
 
-                        results["exposed"].append(
-                            {
-                                "path": path,
-                                "description": description,
-                                "size": content_length,
-                                "severity": severity,
-                            }
-                        )
+                        results["exposed"].append({
+                            "path": path,
+                            "description": description,
+                            "size": content_length,
+                            "severity": severity,
+                        })
 
                         self._add_finding(
                             category="Sensitive File Exposure",
@@ -772,10 +888,16 @@ class VulnerabilityScanner:
                             owasp="A05",
                             remediation="Remove or restrict access to sensitive files",
                         )
+                        
+                        exposed_count += 1
+                        print()
+                        self._log(f"EXPOSED: {path} ({content_length} bytes) - {description}", "vuln")
 
             except Exception:
                 continue
 
+        print()
+        self._log(f"File scan complete: {exposed_count} sensitive files found", "success" if exposed_count == 0 else "warning")
         return results
 
     def scan_ssl_tls(self) -> Dict[str, Any]:
@@ -788,6 +910,7 @@ class VulnerabilityScanner:
             port = parsed.port or (443 if parsed.scheme == "https" else 80)
 
             if parsed.scheme != "https":
+                self._log("Site does not use HTTPS!", "warning")
                 self._add_finding(
                     category="Cryptographic Failures",
                     title="HTTPS Not Enabled",
@@ -799,6 +922,7 @@ class VulnerabilityScanner:
                 return results
 
             results["ssl_enabled"] = True
+            self._log(f"Connecting to {host}:{port}...")
 
             # Create SSL context and connect
             context = ssl.create_default_context()
@@ -815,15 +939,17 @@ class VulnerabilityScanner:
                         "version": version,
                         "cipher": cipher[0] if cipher else None,
                     }
+                    
+                    self._log(f"TLS Version: {version}")
+                    self._log(f"Cipher: {cipher[0] if cipher else 'N/A'}")
 
                     # Check TLS version
                     if version in ("SSLv2", "SSLv3", "TLSv1", "TLSv1.1"):
-                        results["issues"].append(
-                            {
-                                "issue": f"Weak TLS version: {version}",
-                                "severity": "HIGH",
-                            }
-                        )
+                        results["issues"].append({
+                            "issue": f"Weak TLS version: {version}",
+                            "severity": "HIGH",
+                        })
+                        self._log(f"WEAK TLS: {version}", "vuln")
                         self._add_finding(
                             category="Cryptographic Failures",
                             title=f"Weak TLS Version ({version})",
@@ -832,19 +958,21 @@ class VulnerabilityScanner:
                             owasp="A02",
                             remediation="Disable TLS 1.0/1.1, use TLS 1.2 or higher",
                         )
+                    else:
+                        self._log(f"TLS version OK: {version}", "success")
 
                     # Check cipher strength
                     if cipher:
                         cipher_name = cipher[0].upper()
                         weak_ciphers = ["RC4", "DES", "3DES", "MD5", "NULL", "EXPORT"]
+                        is_weak = False
                         for weak in weak_ciphers:
                             if weak in cipher_name:
-                                results["issues"].append(
-                                    {
-                                        "issue": f"Weak cipher: {cipher_name}",
-                                        "severity": "HIGH",
-                                    }
-                                )
+                                results["issues"].append({
+                                    "issue": f"Weak cipher: {cipher_name}",
+                                    "severity": "HIGH",
+                                })
+                                self._log(f"WEAK CIPHER: {cipher_name}", "vuln")
                                 self._add_finding(
                                     category="Cryptographic Failures",
                                     title=f"Weak Cipher Suite",
@@ -853,7 +981,10 @@ class VulnerabilityScanner:
                                     owasp="A02",
                                     remediation="Configure server to use strong cipher suites",
                                 )
+                                is_weak = True
                                 break
+                        if not is_weak:
+                            self._log(f"Cipher strength OK", "success")
 
                     # Check certificate expiry
                     not_after = cert.get("notAfter")
@@ -863,8 +994,11 @@ class VulnerabilityScanner:
                         expiry = datetime.strptime(not_after, "%b %d %H:%M:%S %Y %Z")
                         days_left = (expiry - datetime.now()).days
                         results["certificate"]["days_until_expiry"] = days_left
+                        
+                        self._log(f"Certificate expires in {days_left} days")
 
                         if days_left < 0:
+                            self._log(f"CERTIFICATE EXPIRED!", "vuln")
                             self._add_finding(
                                 category="Cryptographic Failures",
                                 title="SSL Certificate Expired",
@@ -874,6 +1008,7 @@ class VulnerabilityScanner:
                                 remediation="Renew the SSL certificate immediately",
                             )
                         elif days_left < 30:
+                            self._log(f"Certificate expiring soon!", "warning")
                             self._add_finding(
                                 category="Cryptographic Failures",
                                 title="SSL Certificate Expiring Soon",
@@ -882,13 +1017,15 @@ class VulnerabilityScanner:
                                 owasp="A02",
                                 remediation="Renew the SSL certificate before expiry",
                             )
+                        else:
+                            self._log(f"Certificate validity OK", "success")
 
         except ssl.SSLError as e:
-            results["issues"].append(
-                {"issue": f"SSL Error: {str(e)}", "severity": "HIGH"}
-            )
+            results["issues"].append({"issue": f"SSL Error: {str(e)}", "severity": "HIGH"})
+            self._log(f"SSL Error: {str(e)}", "error")
         except Exception as e:
             results["error"] = str(e)
+            self._log(f"Error: {str(e)}", "error")
 
         return results
 
@@ -896,56 +1033,87 @@ class VulnerabilityScanner:
         """Check for CORS misconfiguration (OWASP A05)."""
         results = {"cors_enabled": False, "misconfigured": False, "details": {}}
 
+        self._log("Testing CORS configuration...")
+        
+        # Test origins to check
+        test_origins = [
+            "https://evil-attacker.com",
+            "https://attacker.example.com",
+            "null",
+        ]
+
         try:
-            # Test with arbitrary origin
-            test_origin = "https://evil-attacker.com"
-            headers = {"Origin": test_origin}
+            for i, test_origin in enumerate(test_origins, 1):
+                self._log(f"  [{i}/{len(test_origins)}] Testing Origin: {test_origin}", "test")
+                headers = {"Origin": test_origin}
 
-            resp = self._request("GET", self.url, headers=headers)
-            if not resp:
-                return results
+                resp = self._request("GET", self.url, headers=headers)
+                if not resp:
+                    self._log(f"    No response received", "warning")
+                    continue
 
-            acao = resp.headers.get("Access-Control-Allow-Origin", "")
-            acac = resp.headers.get("Access-Control-Allow-Credentials", "")
+                acao = resp.headers.get("Access-Control-Allow-Origin", "")
+                acac = resp.headers.get("Access-Control-Allow-Credentials", "")
 
-            if acao:
-                results["cors_enabled"] = True
-                results["details"]["allowed_origin"] = acao
-                results["details"]["allow_credentials"] = acac
+                if acao:
+                    results["cors_enabled"] = True
+                    results["details"]["allowed_origin"] = acao
+                    results["details"]["allow_credentials"] = acac
+                    
+                    self._log(f"    Access-Control-Allow-Origin: {acao}")
+                    if acac:
+                        self._log(f"    Access-Control-Allow-Credentials: {acac}")
 
-                # Check for wildcard with credentials
-                if acao == "*" and acac.lower() == "true":
-                    results["misconfigured"] = True
-                    self._add_finding(
-                        category="CORS Misconfiguration",
-                        title="CORS Wildcard with Credentials",
-                        severity="HIGH",
-                        description="CORS allows any origin with credentials",
-                        evidence=f"ACAO: {acao}, ACAC: {acac}",
-                        owasp="A05",
-                        remediation="Restrict CORS to specific trusted origins",
-                    )
+                    # Check for wildcard with credentials
+                    if acao == "*" and acac.lower() == "true":
+                        results["misconfigured"] = True
+                        self._log(f"  ⚠️  CORS Wildcard + Credentials detected!", "vuln")
+                        self._add_finding(
+                            category="CORS Misconfiguration",
+                            title="CORS Wildcard with Credentials",
+                            severity="HIGH",
+                            description="CORS allows any origin with credentials",
+                            evidence=f"ACAO: {acao}, ACAC: {acac}",
+                            owasp="A05",
+                            remediation="Restrict CORS to specific trusted origins",
+                        )
+                        break
 
-                # Check if arbitrary origin is reflected
-                elif acao == test_origin:
-                    results["misconfigured"] = True
-                    self._add_finding(
-                        category="CORS Misconfiguration",
-                        title="CORS Origin Reflection",
-                        severity="MEDIUM" if acac.lower() != "true" else "HIGH",
-                        description="CORS reflects arbitrary Origin header",
-                        evidence=f"Reflected origin: {acao}",
-                        owasp="A05",
-                        remediation="Validate Origin against an allowlist",
-                    )
+                    # Check if arbitrary origin is reflected
+                    elif acao == test_origin:
+                        results["misconfigured"] = True
+                        severity = "HIGH" if acac.lower() == "true" else "MEDIUM"
+                        self._log(f"  ⚠️  Origin reflection detected! ({severity})", "vuln")
+                        self._add_finding(
+                            category="CORS Misconfiguration",
+                            title="CORS Origin Reflection",
+                            severity=severity,
+                            description="CORS reflects arbitrary Origin header",
+                            evidence=f"Reflected origin: {acao}",
+                            owasp="A05",
+                            remediation="Validate Origin against an allowlist",
+                        )
+                        break
+                    else:
+                        self._log(f"    Origin not reflected (safe)", "success")
+                else:
+                    self._log(f"    No CORS headers in response")
+                
+                time.sleep(0.05)
+            
+            if not results["cors_enabled"]:
+                self._log("CORS not enabled on this endpoint", "success")
+            elif not results["misconfigured"]:
+                self._log("CORS enabled but properly configured", "success")
 
         except Exception as e:
+            self._log(f"Error during CORS scan: {e}", "error")
             results["error"] = str(e)
 
         return results
 
-    def run_full_scan(self) -> Dict[str, Any]:
-        """Run all vulnerability scans."""
+    def run_full_scan(self, config: dict = None) -> Dict[str, Any]:
+        """Run all vulnerability scans with Ctrl+C handling."""
         self.findings = []  # Reset findings
 
         results = {
@@ -956,33 +1124,77 @@ class VulnerabilityScanner:
             "summary": {},
         }
 
-        print(
-            f"\n{Colors.OKCYAN}[*] Starting vulnerability scan on {self.url}{Colors.ENDC}\n"
-        )
+        # Print scan header
+        print(f"\n{Colors.HEADER}{'═' * 65}")
+        print(f"  🔍 VULNERABILITY SCAN INITIATED")
+        print(f"{'═' * 65}{Colors.ENDC}")
+        print(f"{Colors.OKCYAN}  Target:{Colors.ENDC} {self.url}")
+        print(f"{Colors.OKCYAN}  Time:{Colors.ENDC}   {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"{Colors.OKCYAN}  Note:{Colors.ENDC}   Press Ctrl+C to skip current phase")
+        print(f"{Colors.HEADER}{'─' * 65}{Colors.ENDC}\n")
+        
+        # First discover parameters
+        print(f"{Colors.OKBLUE}[PHASE 1] Parameter Discovery{Colors.ENDC}")
+        print(f"{'─' * 40}")
+        self._log("Crawling target for form inputs, URL params, JS variables...")
+        discovered_params = self._discover_parameters()
+        self._log(f"Discovered {len(discovered_params)} unique parameters to test", "success")
+        if discovered_params:
+            params_preview = ", ".join(discovered_params[:10])
+            if len(discovered_params) > 10:
+                params_preview += f"... (+{len(discovered_params) - 10} more)"
+            self._log(f"Parameters: {params_preview}")
+        print()
 
         # Run all scans
         scans = [
-            ("security_headers", "Security Headers", self.scan_security_headers),
-            ("version_disclosure", "Version Disclosure", self.scan_version_disclosure),
-            ("ssl_tls", "SSL/TLS Configuration", self.scan_ssl_tls),
-            ("sensitive_files", "Sensitive Files", self.scan_sensitive_files),
-            ("cors", "CORS Configuration", self.scan_cors_misconfig),
-            ("xss", "XSS Testing", self.scan_xss_reflected),
-            ("sqli", "SQL Injection", self.scan_sql_injection),
-            ("lfi", "Directory Traversal", self.scan_directory_traversal),
-            ("open_redirect", "Open Redirect", self.scan_open_redirect),
+            ("security_headers", "Security Headers Analysis", self.scan_security_headers, "🔒"),
+            ("version_disclosure", "Version & Component Detection", self.scan_version_disclosure, "📦"),
+            ("ssl_tls", "SSL/TLS Configuration", self.scan_ssl_tls, "🔐"),
+            ("sensitive_files", "Sensitive File Discovery", self.scan_sensitive_files, "📁"),
+            ("cors", "CORS Misconfiguration", self.scan_cors_misconfig, "🌐"),
+            ("xss", "Cross-Site Scripting (XSS)", lambda: self.scan_xss_reflected(discovered_params), "💉"),
+            ("sqli", "SQL Injection", lambda: self.scan_sql_injection(discovered_params), "🗄️"),
+            ("lfi", "Local File Inclusion (LFI)", self.scan_directory_traversal, "📂"),
+            ("open_redirect", "Open Redirect", self.scan_open_redirect, "↪️"),
         ]
 
-        for scan_key, scan_name, scan_func in scans:
-            print(
-                f"  {Colors.OKBLUE}[~] {scan_name}...{Colors.ENDC}", end=" ", flush=True
-            )
-            try:
-                results["scans"][scan_key] = scan_func()
-                print(f"{Colors.OKGREEN}✓{Colors.ENDC}")
-            except Exception as e:
-                results["scans"][scan_key] = {"error": str(e)}
-                print(f"{Colors.FAIL}✗{Colors.ENDC}")
+        output_file = config.get("output_file", "cobra_scan_results.json") if config else "cobra_scan_results.json"
+        
+        with ScanContext(config, results, output_file) as ctx:
+            for i, (scan_key, scan_name, scan_func, icon) in enumerate(scans, 1):
+                # Check if we should skip (Ctrl+C was pressed in previous phase)
+                if ctx.check():
+                    print(f"{Colors.WARNING}[SKIPPED] {scan_name}{Colors.ENDC}\n")
+                    results["scans"][scan_key] = {"skipped": True, "reason": "User interrupted"}
+                    ctx.reset()
+                    continue
+                
+                print(f"{Colors.OKBLUE}[PHASE {i + 1}] {icon} {scan_name}{Colors.ENDC}")
+                print(f"{'─' * 40}")
+                
+                try:
+                    start_time = time.time()
+                    scan_result = scan_func()
+                    elapsed = time.time() - start_time
+                    results["scans"][scan_key] = scan_result
+                    
+                    # Show test count for injection tests
+                    tests_run = scan_result.get("tests_run", 0)
+                    if tests_run > 0:
+                        self._log(f"Completed {tests_run} tests in {elapsed:.1f}s", "success")
+                    else:
+                        self._log(f"Completed in {elapsed:.1f}s", "success")
+                        
+                except KeyboardInterrupt:
+                    results["scans"][scan_key] = {"skipped": True, "reason": "User interrupted"}
+                    print(f"\n{Colors.WARNING}[!] Phase skipped - continuing to next...{Colors.ENDC}")
+                    ctx.reset()
+                except Exception as e:
+                    results["scans"][scan_key] = {"error": str(e)}
+                    self._log(f"Error: {str(e)[:50]}", "error")
+                
+                print()  # Blank line between phases
 
         # Generate summary
         severity_counts = {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0, "INFO": 0}
@@ -998,6 +1210,32 @@ class VulnerabilityScanner:
             "critical_high": severity_counts["CRITICAL"] + severity_counts["HIGH"],
         }
 
+        # Print final summary
+        print(f"{Colors.HEADER}{'═' * 65}")
+        print(f"  📊 SCAN COMPLETE - SUMMARY")
+        print(f"{'═' * 65}{Colors.ENDC}")
+        print(f"{Colors.OKCYAN}  Target:{Colors.ENDC}      {self.url}")
+        print(f"{Colors.OKCYAN}  Completed:{Colors.ENDC}   {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"{Colors.HEADER}{'─' * 65}{Colors.ENDC}")
+        
+        total = len(self.findings)
+        if total == 0:
+            print(f"\n  {Colors.OKGREEN}✓ No vulnerabilities detected{Colors.ENDC}\n")
+        else:
+            print(f"\n  {Colors.WARNING}⚠ Found {total} potential issue(s):{Colors.ENDC}\n")
+            if severity_counts["CRITICAL"] > 0:
+                print(f"    {Colors.FAIL}🔴 CRITICAL:{Colors.ENDC}  {severity_counts['CRITICAL']}")
+            if severity_counts["HIGH"] > 0:
+                print(f"    {Colors.FAIL}🟠 HIGH:{Colors.ENDC}      {severity_counts['HIGH']}")
+            if severity_counts["MEDIUM"] > 0:
+                print(f"    {Colors.WARNING}🟡 MEDIUM:{Colors.ENDC}    {severity_counts['MEDIUM']}")
+            if severity_counts["LOW"] > 0:
+                print(f"    {Colors.OKCYAN}🟢 LOW:{Colors.ENDC}       {severity_counts['LOW']}")
+            if severity_counts["INFO"] > 0:
+                print(f"    {Colors.OKBLUE}🔵 INFO:{Colors.ENDC}      {severity_counts['INFO']}")
+        
+        print(f"\n{Colors.HEADER}{'═' * 65}{Colors.ENDC}\n")
+
         return results
 
 
@@ -1008,10 +1246,12 @@ class VulnerabilityScannerModule:
         self.name = "Vulnerability Scanner"
         self.version = "1.0.0"
         self.description = "CVE detection and OWASP Top 10 security checks"
+        self.verbose = True
 
     def run(self, config, target_manager, proxy_manager=None):
         """Main entry point for the module."""
         self.proxy_manager = proxy_manager
+        self.verbose = config.get("verbose", True)
 
         while True:
             clear_screen()
@@ -1196,8 +1436,8 @@ class VulnerabilityScannerModule:
             input(f"\n{Colors.WARNING}Press Enter to continue...{Colors.ENDC}")
             return
 
-        scanner = VulnerabilityScanner(target, config["timeout"], self.proxy_manager)
-        results = scanner.run_full_scan()
+        scanner = VulnerabilityScanner(target, config["timeout"], self.proxy_manager, config.get("verbose", True))
+        results = scanner.run_full_scan(config)
         results["scan_type"] = "full_vuln_scan"
 
         self._display_findings(results)
@@ -1214,7 +1454,7 @@ class VulnerabilityScannerModule:
             input(f"\n{Colors.WARNING}Press Enter to continue...{Colors.ENDC}")
             return
 
-        scanner = VulnerabilityScanner(target, config["timeout"], self.proxy_manager)
+        scanner = VulnerabilityScanner(target, config["timeout"], self.proxy_manager, config.get("verbose", True))
 
         print(f"\n{Colors.OKCYAN}[*] Quick scan on {target}{Colors.ENDC}\n")
 
@@ -1253,7 +1493,7 @@ class VulnerabilityScannerModule:
             input(f"\n{Colors.WARNING}Press Enter to continue...{Colors.ENDC}")
             return
 
-        scanner = VulnerabilityScanner(target, config["timeout"], self.proxy_manager)
+        scanner = VulnerabilityScanner(target, config["timeout"], self.proxy_manager, config.get("verbose", True))
 
         print(f"\n{Colors.OKCYAN}[*] OWASP Top 10 Assessment on {target}{Colors.ENDC}")
         print(
@@ -1322,7 +1562,7 @@ class VulnerabilityScannerModule:
             input(f"\n{Colors.WARNING}Press Enter to continue...{Colors.ENDC}")
             return
 
-        scanner = VulnerabilityScanner(target, config["timeout"], self.proxy_manager)
+        scanner = VulnerabilityScanner(target, config["timeout"], self.proxy_manager, config.get("verbose", True))
 
         print(f"\n{Colors.OKCYAN}[*] Injection testing on {target}{Colors.ENDC}")
         print(f"{Colors.WARNING}    ⚠ This may trigger WAF/IDS alerts{Colors.ENDC}\n")
@@ -1361,7 +1601,7 @@ class VulnerabilityScannerModule:
             input(f"\n{Colors.WARNING}Press Enter to continue...{Colors.ENDC}")
             return
 
-        scanner = VulnerabilityScanner(target, config["timeout"], self.proxy_manager)
+        scanner = VulnerabilityScanner(target, config["timeout"], self.proxy_manager, config.get("verbose", True))
 
         print(
             f"\n{Colors.OKCYAN}[*] SSL/TLS & Headers check on {target}{Colors.ENDC}\n"
@@ -1410,7 +1650,7 @@ class VulnerabilityScannerModule:
             print(f"\n{Colors.HEADER}[{i}/{len(targets)}] {target}{Colors.ENDC}")
 
             scanner = VulnerabilityScanner(
-                target, config["timeout"], self.proxy_manager
+                target, config["timeout"], self.proxy_manager, config.get("verbose", True)
             )
             results = scanner.run_full_scan()
             results["scan_type"] = "batch_vuln_scan"

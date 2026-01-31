@@ -12,7 +12,7 @@ from helpers.http_client import request_with_rotation
 from urllib.parse import urlparse, urljoin
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from helpers.utils import Colors, clear_screen
+from helpers.utils import Colors, clear_screen, Logger, ScanContext
 
 
 class PathFinder:
@@ -330,13 +330,15 @@ class PathFinder:
     # Status codes that indicate found paths
     FOUND_CODES = [200, 201, 204, 301, 302, 303, 307, 308, 401, 403]
 
-    def __init__(self, url, timeout=10, threads=10, proxies=None, proxy_manager=None):
+    def __init__(self, url, timeout=10, threads=10, proxies=None, proxy_manager=None, verbose=True):
         """Initialize path finder."""
         self.url = self._normalize_url(url)
         self.timeout = timeout
         self.threads = threads
         self.proxies = proxies
         self.proxy_manager = proxy_manager
+        self.verbose = verbose
+        self.logger = Logger(verbose=verbose, module_name="PathFinder")
         self.session = requests.Session()
         self.session.headers.update(
             {
@@ -365,15 +367,23 @@ class PathFinder:
                 verify=False,
                 headers=self.session.headers,
             )
-            return {
+            found = response.status_code in self.FOUND_CODES
+            result = {
                 "path": path,
                 "url": full_url,
                 "status_code": response.status_code,
                 "content_length": len(response.content),
                 "content_type": response.headers.get("Content-Type", "Unknown"),
-                "found": response.status_code in self.FOUND_CODES,
+                "found": found,
                 "used_proxy": getattr(response, "_used_proxy", None) or "DIRECT",
             }
+            # Log found paths immediately
+            if found and self.verbose:
+                status = response.status_code
+                size = len(response.content)
+                size_str = f"{size}B" if size < 1024 else f"{size/1024:.1f}KB"
+                self.logger.log(f"[{status}] {path} ({size_str})", "found")
+            return result
         except requests.exceptions.Timeout:
             return {
                 "path": path,
@@ -398,22 +408,48 @@ class PathFinder:
             }
 
     def _scan_paths(self, paths, callback=None):
-        """Scan a list of paths using thread pool."""
+        """Scan a list of paths using thread pool with Ctrl+C support."""
         results = []
         found = []
         total = len(paths)
+        interrupted = False
+        
+        self.logger.log(f"Starting scan of {total} paths with {self.threads} threads", "info")
+        self.logger.log(f"Target: {self.url}", "info")
+        self.logger.log("Press Ctrl+C to stop scan early", "info")
+        if self.proxy_manager and self.proxy_manager.is_loaded():
+            self.logger.log(f"Using {self.proxy_manager.get_count()} proxies for rotation", "info")
+        self.logger.newline()
 
-        with ThreadPoolExecutor(max_workers=self.threads) as executor:
-            futures = {executor.submit(self._check_path, path): path for path in paths}
-            for i, future in enumerate(as_completed(futures), 1):
-                result = future.result()
-                results.append(result)
-                if result["found"]:
-                    found.append(result)
-                if callback:
-                    callback(i, total, result)
+        try:
+            with ThreadPoolExecutor(max_workers=self.threads) as executor:
+                futures = {executor.submit(self._check_path, path): path for path in paths}
+                for i, future in enumerate(as_completed(futures), 1):
+                    try:
+                        result = future.result()
+                        results.append(result)
+                        if result["found"]:
+                            found.append(result)
+                        if callback:
+                            callback(i, total, result)
+                        # Progress update
+                        if self.verbose and i % 5 == 0:
+                            self.logger.progress_bar(i, total, f"({len(found)} found)")
+                    except KeyboardInterrupt:
+                        interrupted = True
+                        break
+        except KeyboardInterrupt:
+            interrupted = True
+            self.logger.newline()
+            self.logger.log("Scan interrupted by user", "warning")
+        
+        self.logger.newline()
+        if interrupted:
+            self.logger.log(f"Scan stopped early: {len(found)} paths found from {len(results)} checked", "warning")
+        else:
+            self.logger.log(f"Scan complete: {len(found)}/{total} paths found", "success")
 
-        return {"all_results": results, "found": found, "total_checked": total}
+        return {"all_results": results, "found": found, "total_checked": len(results), "interrupted": interrupted}
 
     def scan_admin_paths(self, callback=None):
         """Scan for admin and login paths."""
@@ -469,10 +505,12 @@ class PathFinderModule:
             "Discovers sensitive paths, admin panels, and hidden endpoints"
         )
         self.proxy_manager = None
+        self.verbose = True
 
     def run(self, config, target_manager, proxy_manager=None):
         """Main entry point for the module."""
         self.proxy_manager = proxy_manager
+        self.verbose = config.get("verbose", True)
         while True:
             clear_screen()
             self._print_module_banner()
@@ -725,8 +763,9 @@ class PathFinderModule:
                 timeout=config["timeout"],
                 proxies=self._get_proxy(),
                 proxy_manager=self.proxy_manager,
+                verbose=config.get("verbose", True),
             )
-            results = finder.scan_admin_paths(callback=self._print_progress)
+            results = finder.scan_admin_paths(callback=self._print_progress if not config.get("verbose", True) else None)
             found = self._display_results(results, "Admin/Login Paths")
 
             if config.get("auto_save") and found:
@@ -772,8 +811,9 @@ class PathFinderModule:
                 timeout=config["timeout"],
                 proxies=self._get_proxy(),
                 proxy_manager=self.proxy_manager,
+                verbose=config.get("verbose", True),
             )
-            results = finder.scan_cms_paths(callback=self._print_progress)
+            results = finder.scan_cms_paths(callback=self._print_progress if not config.get("verbose", True) else None)
             found = self._display_results(results, "CMS Paths")
 
             if config.get("auto_save") and found:
@@ -821,8 +861,9 @@ class PathFinderModule:
                 timeout=config["timeout"],
                 proxies=self._get_proxy(),
                 proxy_manager=self.proxy_manager,
+                verbose=config.get("verbose", True),
             )
-            results = finder.scan_api_paths(callback=self._print_progress)
+            results = finder.scan_api_paths(callback=self._print_progress if not config.get("verbose", True) else None)
             found = self._display_results(results, "API/Hidden Endpoints")
 
             if config.get("auto_save") and found:
@@ -870,8 +911,9 @@ class PathFinderModule:
                 timeout=config["timeout"],
                 proxies=self._get_proxy(),
                 proxy_manager=self.proxy_manager,
+                verbose=config.get("verbose", True),
             )
-            results = finder.scan_sensitive_paths(callback=self._print_progress)
+            results = finder.scan_sensitive_paths(callback=self._print_progress if not config.get("verbose", True) else None)
             found = self._display_results(results, "Sensitive Files")
 
             if config.get("auto_save") and found:
@@ -926,8 +968,9 @@ class PathFinderModule:
                 timeout=config["timeout"],
                 proxies=self._get_proxy(),
                 proxy_manager=self.proxy_manager,
+                verbose=config.get("verbose", True),
             )
-            results = finder.scan_all_paths(callback=self._print_progress)
+            results = finder.scan_all_paths(callback=self._print_progress if not config.get("verbose", True) else None)
             found = self._display_results(results, "All Paths")
 
             if config.get("auto_save") and found:
@@ -973,14 +1016,18 @@ class PathFinderModule:
 
         try:
             finder = PathFinder(
-                target, timeout=config["timeout"], proxies=self._get_proxy()
+                target,
+                timeout=config["timeout"],
+                proxies=self._get_proxy(),
+                proxy_manager=self.proxy_manager,
+                verbose=config.get("verbose", True),
             )
             print(
                 f"{Colors.WARNING}[*] Loading wordlist: {wordlist_path}...{Colors.ENDC}"
             )
 
             results = finder.scan_custom_wordlist(
-                wordlist_path, callback=self._print_progress
+                wordlist_path, callback=self._print_progress if not config.get("verbose", True) else None
             )
             found = self._display_results(results, f"Custom Wordlist ({wordlist_path})")
 
